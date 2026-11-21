@@ -1,0 +1,70 @@
+Vela - Third-party notices (release 0.11.0)
+Copyright 2026 fur6i. Vela's own code is licensed under MIT; see LICENSE.
+Third-party components retain their own licenses, copyrights and conditions.
+
+Electron 45.4.1 - MIT
+https://github.com/electron/electron/tree/v45.4.1
+License: assets/licenses/Electron-runtime-MIT.txt
+The packaged Electron runtime also carries its original Chromium and bundled
+third-party license notices. These must accompany redistributed binaries.
+
+Chromium - BSD-3-Clause (plus separately licensed bundled components)
+https://chromium.googlesource.com/chromium/src/
+License: assets/licenses/Chromium-BSD-3-Clause.txt
+Electron supplies the exact runtime's LICENSES.chromium.html; this file is kept
+by the packaging process and is not replaced by the short BSD notice.
+
+@ghostery/adblocker-electron 2.20.3 and related Ghostery packages - MPL-2.0
+Copyright 2017-present Ghostery GmbH and contributors.
+https://github.com/ghostery/adblocker
+Corresponding source for the integrated 2.20.3 release:
+https://github.com/ghostery/adblocker/tree/6f0610bf5eec1f31c4975ce0e707cdf47023e5b5
+License texts: assets/licenses/_ghostery-*.txt
+Covered upstream files are used unmodified; Vela's adapter is separate.
+Recipients may obtain, modify and redistribute the covered source under MPL-2.0.
+Vela's MIT license does not replace MPL-2.0 for those files.
+
+Electron-updater 6.8.11 - MIT
+https://github.com/electron-userland/electron-builder/tree/master/packages/electron-updater
+License and copyright: assets/licenses/electron-updater-6.8.11.txt
+
+Inline toolbar icons - generic geometric paths, with Lucide/Feather attribution
+retained for any overlapping/adapted path geometry (ISC / MIT).
+https://github.com/lucide-icons/lucide
+https://github.com/feathericons/feather
+Full notices: assets/licenses/Lucide-Feather.txt
+No proprietary Apple, Arc, Google or other product logo is bundled as app branding.
+Site favicons displayed while browsing remain the property of their owners.
+
+Additional dependency notices
+assets/licenses/inventory.json lists exact npm versions, declared licenses,
+source repositories and the individual license files collected from their
+published packages. Some listed build/peer components are not shipped at runtime;
+their notices are retained conservatively. License texts are included alongside
+this inventory. Do not remove them when redistributing Vela.
+
+Assets and fonts
+assets/vela-source.png preserves the artwork supplied by fur6i, generated with
+Gemini according to the author. assets/vela.png and vela.ico are resized versions
+of that same artwork, reproducible with scripts/create-icon.cjs.
+assets/aurora.svg is local geometric gradient artwork.
+The two offline rule files are short independently curated domain rules, not
+copies of subscription lists. No font binaries are distributed: the OS supplies
+Segoe UI and emoji glyphs. Windows font/emoji licenses are not transferred.
+
+Separately downloaded content (not part of the source or installer)
+Full advertising/tracking subscriptions and scriptlet resources are downloaded
+at runtime from upstream publishers and retain their own licenses, including
+GPL/CC terms where applicable. Vela does not relicense these as MIT. Local caches
+and generated filter binaries must never be included in the public source export.
+On-demand yt-dlp, FFmpeg, ffprobe and Deno executables are not bundled. They retain
+their upstream licenses; the selected FFmpeg builds may be GPL. Their download
+and SHA-256 verification do not grant rights to media content. Users must comply
+with the upstream component licenses and the rights/terms governing that content.
+
+Trademarks
+Safari, macOS and Apple are Apple trademarks; Arc is a trademark of its owner;
+Chrome, Chrome Web Store and Google are Google trademarks. Other mentioned names
+belong to their respective owners. References describe interoperability or visual
+inspiration only. Vela is independent and is not affiliated with, endorsed by or
+sponsored by those owners. No trademark clearance or legal opinion is implied.

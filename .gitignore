@@ -1,0 +1,16 @@
+node_modules/
+release/
+.smoke-profile/
+*.log
+verification.json
+.native-tools-test/
+*-preview.png
+preview.png
+youtube-*.png
+youtube-*.json
+smoke-error.json
+performance-*.json
+profile.json
+*.bin
+*.key
+.env

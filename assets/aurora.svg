@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1100" preserveAspectRatio="xMidYMid slice">
+ <defs>
+  <linearGradient id="sky" x2="1" y2="1"><stop stop-color="#c9e1ef"/><stop offset=".46" stop-color="#e5e1f3"/><stop offset="1" stop-color="#d8c2e5"/></linearGradient>
+  <linearGradient id="blue" x1="0" y1="0" x2=".9" y2="1"><stop stop-color="#9bc5e5"/><stop offset=".6" stop-color="#b1bde7"/><stop offset="1" stop-color="#bbb0de"/></linearGradient>
+  <linearGradient id="violet" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#e7d3ee"/><stop offset=".5" stop-color="#c4b1e2"/><stop offset="1" stop-color="#928ac9"/></linearGradient>
+  <linearGradient id="rose" x1="0" y1="0" x2=".5" y2="1"><stop stop-color="#ffe5d6"/><stop offset=".5" stop-color="#ecc8dc"/><stop offset="1" stop-color="#c7a5d9"/></linearGradient>
+  <linearGradient id="edge"><stop stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+ </defs>
+ <path fill="url(#sky)" d="M0 0h1600v1100H0z"/>
+ <path fill="url(#rose)" d="M1600 0H1190C954 120 1175 381 951 576S704 921 945 1100h655z"/>
+ <path fill="url(#violet)" d="M1600 190c-357-109-180 272-512 401S788 962 568 1100h1032z"/>
+ <path fill="url(#blue)" d="M0 210c280 35 333 258 595 325s466 23 443 219-404 291-429 346H0z"/>
+ <path fill="url(#violet)" d="M0 551c319-37 397 284 701 192s598 43 426 357H0z"/>
+ <path fill="url(#blue)" d="M0 801c244-77 360 144 603 135s350 27 442 164H0z"/>
+ <path fill="none" stroke="url(#edge)" stroke-width="2" d="M0 210c280 35 333 258 595 325s466 23 443 219M1600 190c-357-109-180 272-512 401"/>
+</svg>

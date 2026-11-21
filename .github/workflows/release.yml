@@ -1,0 +1,27 @@
+name: Release Windows
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+      - run: node scripts/audit-release.cjs
+      - name: Validate release version
+        shell: pwsh
+        run: |
+          $version = node -p "require('./package.json').version"
+          if ($env:GITHUB_REF_TYPE -eq 'tag' -and $env:GITHUB_REF_NAME -ne "v$version") { throw 'Tag and package version differ' }
+      - run: npx electron-builder --win nsis --publish always
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

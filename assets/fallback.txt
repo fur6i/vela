@@ -1,0 +1,16 @@
+[Adblock Plus 2.0]
+! SPDX-License-Identifier: MIT
+! Copyright 2026 fur6i. Minimal independently curated domain rules.
+! No imported subscription content; runtime subscriptions are licensed separately.
+||doubleclick.net^
+||googlesyndication.com^
+||googleadservices.com^
+||google-analytics.com^
+||adservice.google.com^
+||connect.facebook.net^
+||ads.yahoo.com^
+||adsystem.amazon.com^
+||scorecardresearch.com^
+||hotjar.com^
+||taboola.com^
+||outbrain.com^

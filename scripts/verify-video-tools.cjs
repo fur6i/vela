@@ -1,0 +1,27 @@
+const fs = require('node:fs');
+const path = require('node:path');
+const { ensureVideoTools, mediaUrl, run } = require('../src/video-tools.cjs');
+const { NativeTools } = require('../src/native-tools.cjs');
+(async () => {
+  const url=mediaUrl(process.env.VELA_TEST_MEDIA_URL);if(!url)throw Error('Set VELA_TEST_MEDIA_URL to a public HTTPS media URL you are authorized to download.');
+  const root = path.resolve('.native-tools-test', 'video-tools');
+  let lastMessage = '';
+  await ensureVideoTools(root, (message) => { if (message !== lastMessage) { lastMessage = message; console.log(message); } });
+  console.log('yt-dlp:', (await run(path.join(root, 'yt-dlp.exe'), ['--version'])).trim());
+  console.log('Deno:', (await run(path.join(root, 'deno.exe'), ['--version'])).split('\n')[0]);
+  const output = path.resolve('.native-tools-test', `video 100% & prova-${Date.now()}`);
+  const tools = new NativeTools({ app: { getPath: () => path.resolve('.native-tools-test') }, dialog: { showSaveDialog: async (_win, options) => ({ canceled: false, filePath: output + path.extname(options.defaultPath) }) }, getWindow: () => null, getContents: () => null, getSession: () => null, getTab: () => ({ url }), notify: () => {}, saved: () => {} });
+  await tools.operation(signal=>tools.inspect(signal));
+  if(tools.state.error)throw Error(tools.state.error);
+  const info=tools.video;
+  await tools.operation((signal) => tools.downloadVideo('mp4', signal));
+  if (tools.state.error) throw new Error(tools.state.error);
+  const probe = JSON.parse(await run(path.join(root, 'ffprobe.exe'), ['-v', 'error', '-show_streams', '-show_format', '-of', 'json', output + '.mp4']));
+  if (!probe.streams.some((item) => item.codec_type === 'video') || !probe.streams.some((item) => item.codec_type === 'audio')) throw new Error('File senza audio o video.');
+  await tools.operation((signal) => tools.downloadVideo('mp3', signal));
+  if (tools.state.error) throw new Error(tools.state.error);
+  const mp3 = JSON.parse(await run(path.join(root, 'ffprobe.exe'), ['-v', 'error', '-show_streams', '-of', 'json', output + '.mp3']));
+  if (!mp3.streams.some((item) => item.codec_name === 'mp3')) throw new Error('Conversione MP3 non riuscita.');
+  const result = { title: info.title, maxAvailableHeight: tools.video.height, mp3Verified: true, streams: probe.streams.map(({ codec_type, codec_name, width, height }) => ({ codec_type, codec_name, width, height })), duration: probe.format.duration, bytes: fs.statSync(output + '.mp4').size };
+  fs.writeFileSync(path.resolve('.native-tools-test', 'verification.json'), JSON.stringify(result, null, 2)); console.log(JSON.stringify(result));
+})().catch((error) => { console.error(error.message); process.exitCode = 1; });

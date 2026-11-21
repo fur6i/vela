@@ -1,0 +1,74 @@
+{
+  "name": "vela-browser",
+  "version": "0.11.0",
+  "license": "MIT",
+  "author": "fur6i",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fur6i/vela.git"
+  },
+  "description": "A quiet, minimal Chromium browser for Windows. Inspired by Safari and Arc.",
+  "main": "src/main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "check": "node --check src/main.cjs && node --check src/preload.cjs && node --check src/renderer.js && node --check src/security.cjs && node --check src/adblock.cjs && node --check src/adblock-preload.cjs && node --check src/youtube-smoke.cjs && node --test tests/*.test.cjs",
+    "smoke": "electron . --smoke-test",
+    "benchmark": "electron . --smoke-test --performance-test",
+    "smoke:online": "electron . --smoke-test --online-filters",
+    "test:youtube": "electron . --smoke-test --online-filters --youtube-test",
+    "pack": "electron-builder --win --dir",
+    "release": "electron-builder --win nsis portable --publish never"
+  },
+  "dependencies": {
+    "@ghostery/adblocker-electron": "2.20.3",
+    "electron-updater": "6.8.11"
+  },
+  "devDependencies": {
+    "@electron/fuses": "2.1.3",
+    "electron": "45.4.1",
+    "electron-builder": "26.18.0"
+  },
+  "build": {
+    "appId": "dev.vela.browser",
+    "productName": "Vela",
+    "afterPack": "scripts/harden.cjs",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "src/**/*",
+      "assets/**/*",
+      "package.json",
+      "LICENSE",
+      "THIRD_PARTY_NOTICES.txt",
+      "!assets/vela-source.png"
+    ],
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "fur6i",
+        "repo": "vela"
+      }
+    ],
+    "win": {
+      "icon": "assets/vela.ico",
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "artifactName": "Vela-${version}-Windows.${ext}"
+    },
+    "nsis": {
+      "artifactName": "Vela-${version}-Setup.${ext}",
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "perMachine": false,
+      "displayLanguageSelector": true,
+      "installerLanguages": [
+        "en_US",
+        "it_IT"
+      ],
+      "include": "scripts/installer.nsh"
+    }
+  }
+}
