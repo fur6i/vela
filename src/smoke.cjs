@@ -2,18 +2,21 @@ const assert = require('node:assert/strict');
 const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
-module.exports = async ({ win, createTab, select, closeTab, state, browserSession, app, suspendTab, reopen, blocker, diagnostics, updateSidebarPointer, sidebarSurface, dockSurface, shortcut,openPrivate,searchSuggestions }) => {
+module.exports = async ({ win, createTab, select, closeTab, state, browserSession, app, suspendTab, reopen, blocker, diagnostics, updateSidebarPointer, updatePageScrollbar, sidebarSurface, dockSurface, shortcut,openPrivate,searchSuggestions,credentialMenu }) => {
   const { Request } = require('@ghostery/adblocker-electron');
   const { captureFullPage, convertImage } = require('./native-tools.cjs');
   const { nativeImage, session, WebContentsView, BrowserWindow,net } = require('electron');
-  const { ExtensionShelf } = require('./extension-shelf.cjs');
+  const { ExtensionShelf, storeResponse } = require('./extension-shelf.cjs');
   const started = performance.now();
   let captureStep='initial setup';
   let pageLoads = 0;
   let privacyHeaders={};
+  let pageUserAgent;
   const scriptletsAvailable = Boolean(blocker.resources.getScriptlet('set-constant.js'));
   blocker.updateFromDiff({ added: ['127.0.0.1##.vela-ad-fixture', '127.0.0.1##+js(set-constant, velaDocumentStart, true)'] });
   const server = http.createServer((_request, response) => {
+    if(_request.url==='/store-redirect'){response.writeHead(302,{Location:'/store-package'});response.end();return;}
+    if(_request.url==='/store-package'){response.end('extension fixture');return;}
     if(_request.url.startsWith('/suggest-probe')){response.setHeader('Content-Type','application/json');response.end(JSON.stringify(['how many',['how many countries','how many days']]));return;}
     if(_request.url==='/interrupted-transfer'){response.writeHead(200,{'Content-Type':'text/plain','Content-Length':'1000000'});response.write('partial');setTimeout(()=>response.destroy(),25);return;}
     if(_request.url==='/multipart-probe'){const chunks=[];_request.on('data',chunk=>chunks.push(chunk));_request.on('end',()=>{response.setHeader('Content-Type','application/json');response.end(JSON.stringify({type:_request.headers['content-type'],body:Buffer.concat(chunks).toString()}));});return;}
@@ -32,6 +35,7 @@ module.exports = async ({ win, createTab, select, closeTab, state, browserSessio
       response.end('<!doctype html><title>Native tools fixture</title><div style="height:2600px;background:linear-gradient(#18354b,#86b29c)">Pagina intera</div><audio id="test-audio"></audio>'); return;
     }
     pageLoads++;
+    pageUserAgent = _request.headers['user-agent'];
     response.setHeader('Content-Type', 'text/html');
     response.setHeader('Content-Security-Policy', "default-src 'none'; img-src 'self'; script-src 'nonce-dmVsYXRlc3Q=' https://doubleclick.net; style-src 'none'");
     response.end('<!doctype html><title>Vela smoke fixture</title><h1>Pagina di prova</h1><div class="vela-ad-fixture">Pubblicità di prova</div><script nonce="dmVsYXRlc3Q=">window.earlyAtInline = window.velaDocumentStart === true; window.nodeExposed = typeof require !== "undefined";</script><script nonce="dmVsYXRlc3Q=" src="https://doubleclick.net/vela-ad-probe" onload="window.probe=\'allowed\'" onerror="window.probe=\'blocked\'"></script>');
@@ -46,6 +50,15 @@ module.exports = async ({ win, createTab, select, closeTab, state, browserSessio
     if(process.argv.includes('--language=en')){assert.equal(state().settings.language,'en');await wait();assert.equal(await win.webContents.executeJavaScript('document.documentElement.lang'),'en');await win.webContents.executeJavaScript('window.vela.command("language","it")');await wait();}
 
     await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+    const storeOrigin = `http://127.0.0.1:${server.address().port}`;
+    const storeRedirect = await storeResponse(net, `${storeOrigin}/store-redirect`, { signal: AbortSignal.timeout(5000) });
+    assert.equal(storeRedirect.status, 302);
+    assert.equal(storeRedirect.headers.get('location'), `${storeOrigin}/store-package`);
+    const storePackage = await storeResponse(net, storeRedirect.headers.get('location'), { signal: AbortSignal.timeout(5000) });
+    assert.equal(storePackage.ok, true);
+    const storeChunks = [];
+    for await (const chunk of storePackage.body) storeChunks.push(chunk);
+    assert.equal(Buffer.concat(storeChunks).toString(), 'extension fixture');
     for(let attempt=0;attempt<3;attempt++){let rejected=false;try{await(await net.fetch(`http://127.0.0.1:${server.address().port}/interrupted-transfer`)).text();}catch{rejected=true;}assert.equal(rejected,true,'interrupted Chromium transfers must reject without an uncaught parser error');}
     const multipart=new FormData();multipart.set('file',new Blob(['Harmless transport probe']),'probe.txt');
     const transport=await(await net.fetch(`http://127.0.0.1:${server.address().port}/multipart-probe`,{method:'POST',body:multipart})).json();assert.match(transport.type,/multipart\/form-data; boundary=/);assert.match(transport.body,/Harmless transport probe/);
@@ -54,6 +67,18 @@ module.exports = async ({ win, createTab, select, closeTab, state, browserSessio
     assert.equal(await win.webContents.executeJavaScript('document.getElementById("search-panel").hidden'), false, 'first launch must ask before using a search engine');
     await win.webContents.executeJavaScript('document.querySelector("[data-engine=brave]").click()'); await wait();
     assert.equal(state().settings.searchEngine, 'brave');
+    captureStep='beta vault and migration UI';
+    const betaPanels=await win.webContents.executeJavaScript(`(async()=>{document.getElementById('settings-passwords').click();await new Promise(r=>setTimeout(r,100));const vault=!document.getElementById('passwords-panel').hidden&&document.getElementById('vault-form').hidden;document.querySelector('#passwords-panel .close-panel').click();await new Promise(r=>setTimeout(r,100));document.getElementById('settings-arc').click();await new Promise(r=>setTimeout(r,100));const arc=!document.getElementById('arc-panel').hidden;document.querySelector('#arc-panel .close-panel').click();return {vault,arc,bridge:typeof window.VelaVaultUI.lock};})()`);
+    assert.equal(betaPanels.vault,true);assert.equal(betaPanels.arc,true);assert.equal(betaPanels.bridge,'function');
+    await credentialMenu.show([{label:'vault-fixture.invalid',enabled:false},{label:'smoke-user',click:()=>{}}],{x:260,y:140});await wait();
+    assert.equal(credentialMenu.view.getVisible(),true);assert.equal(await credentialMenu.view.webContents.executeJavaScript('typeof window.vela'),'undefined');assert.equal(await credentialMenu.view.webContents.executeJavaScript('document.querySelectorAll("button").length'),1);credentialMenu.hide();
+    const saveDecision=credentialMenu.confirmSave({title:'Salvare le credenziali?',origin:'https://vault-fixture.invalid',username:'smoke-user',cancel:'Annulla',save:'Salva',tabId:state().activeId});await wait();
+    const savePanel=await credentialMenu.view.webContents.executeJavaScript('({visible:!!document.querySelector(".save-confirmation[role=dialog]"),buttons:[...document.querySelectorAll("button")].map(button=>button.textContent),origin:document.querySelector("strong")?.textContent,focus:document.activeElement?.textContent})');
+    assert.deepEqual(savePanel,{visible:true,buttons:['Annulla','Salva'],origin:'https://vault-fixture.invalid',focus:'Annulla'});
+    credentialMenu.hide();assert.equal(await saveDecision,false);
+    const {PasswordVault}=require('./password-vault.cjs'),{safeStorage}=require('electron');
+    const vaultTemp=fs.mkdtempSync(path.join(app.getPath('temp'),'vela-vault-smoke-')),vaultFile=path.join(vaultTemp,'credentials.vault');
+    try{const vault=new PasswordVault(vaultFile,safeStorage);assert.equal(await vault.available(),true);await vault.merge([{origin:'https://vault-fixture.invalid',username:'smoke-user',password:'smoke-only-secret'}]);const entry=(await vault.list())[0];assert.equal(entry.password,undefined);assert.equal((await vault.get(entry.id,entry.origin)).password,'smoke-only-secret');assert.ok(!fs.readFileSync(vaultFile,'utf8').includes('smoke-only-secret'));}finally{if(fs.existsSync(vaultFile))fs.unlinkSync(vaultFile);fs.rmdirSync(vaultTemp);}
     assert.equal(await win.webContents.executeJavaScript('document.getElementById("overlay").hidden'), true);
     await win.webContents.executeJavaScript('document.getElementById("extensions-button").click()'); await wait();
     assert.equal(await dockSurface.webContents.executeJavaScript('document.querySelectorAll(".native-shelf [data-native]").length'), 8);
@@ -64,8 +89,20 @@ module.exports = async ({ win, createTab, select, closeTab, state, browserSessio
     await win.webContents.executeJavaScript(`window.vela.command('dock-order',{kind:'native',ids:${JSON.stringify(initialDock)}})`);await wait();
     assert.equal(state().overlay,false,'the dock must not activate the modal overlay');
     assert.equal(state().dockOpen,true);
+    const dockFits=()=>dockSurface.webContents.executeJavaScript(`(()=>{
+      const note=document.getElementById('extension-note').getBoundingClientRect();
+      const store=document.getElementById('extension-store-open').getBoundingClientRect();
+      return note.height>0&&note.bottom<=innerHeight&&store.height>0&&store.bottom<=innerHeight;
+    })()`);
+    assert.equal(await dockFits(),true);
+    await dockSurface.webContents.executeJavaScript('document.querySelector("#extensions-panel .close-panel").click()');
+    await wait(300);
+    await win.webContents.executeJavaScript('document.getElementById("extensions-button").click()');await wait(300);
+    assert.equal(await dockFits(),true,'the footer must fit after reopening the dock at the same size');
     await dockSurface.webContents.executeJavaScript('document.querySelector("#extensions-panel .close-panel").click()');
     assert.equal(await win.webContents.executeJavaScript('document.getElementById("app-version").textContent'), `v${app.getVersion()}`);
+    assert.equal(await win.webContents.executeJavaScript('document.getElementById("start-copyright").textContent'), '© fur6i');
+    assert.equal(await win.webContents.executeJavaScript('document.getElementById("store-listing-button").hidden'), true);
     win.showInactive(); await wait();
     const initialCount = state().tabs.length;
     await win.webContents.executeJavaScript('window.vela.command("new")'); await wait();
@@ -124,6 +161,7 @@ module.exports = async ({ win, createTab, select, closeTab, state, browserSessio
         assert.ok(offset < 1, `address field must be centered at ${width}px (offset ${offset})`);
         const placement=await win.webContents.executeJavaScript('(()=>{const url=document.querySelector(".address-wrap").getBoundingClientRect(),home=document.getElementById("home-button").getBoundingClientRect(),shield=document.getElementById("protection").getBoundingClientRect();return {left:url.left-home.right,right:shield.left-url.right,homeBefore:home.right<=url.left,shieldAfter:shield.left>=url.right};})()');
         assert.ok(placement.homeBefore&&placement.shieldAfter);assert.ok(Math.abs(placement.left-placement.right)<1,'home and shield must have symmetric spacing');
+        assert.equal(await win.webContents.executeJavaScript('(()=>{const copy=document.querySelector(".address-wrap > #copy-address"),address=document.getElementById("address");return !!copy&&copy.getBoundingClientRect().right<=address.getBoundingClientRect().left;})()'),true);
         await win.webContents.executeJavaScript('window.vela.command("sidebar")'); await wait();
       }
     }
@@ -181,6 +219,22 @@ module.exports = async ({ win, createTab, select, closeTab, state, browserSessio
     win.showInactive(); await wait();
     const blackPreview = await win.webContents.capturePage(); fs.writeFileSync(output('black-preview.png'), blackPreview.toPNG());
     await win.webContents.executeJavaScript('document.getElementById("settings-button").click()'); await wait();
+    assert.equal(await win.webContents.executeJavaScript('document.querySelectorAll("#settings-panel [role=tab]").length'),5);
+    const settingsAlignment = await win.webContents.executeJavaScript(`(() => {
+      const panel = document.getElementById('settings-panel');
+      document.getElementById('settings-tab-general').click();
+      const outer = panel.getBoundingClientRect();
+      const body = panel.querySelector('.settings-body');
+      const row = document.querySelector('#settings-general .setting-row').getBoundingClientRect();
+      return {
+        centered: Math.abs((outer.left + outer.right) / 2 - innerWidth / 2) <= 1,
+        fullWidth: Math.abs(body.getBoundingClientRect().width - outer.width) <= 2,
+        balance: (row.left + row.right - outer.left - outer.right) / 2
+      };
+    })()`);
+    assert.ok(settingsAlignment.centered && settingsAlignment.fullWidth && Math.abs(settingsAlignment.balance) <= 1, JSON.stringify(settingsAlignment));
+    await win.webContents.executeJavaScript('document.getElementById("settings-tab-appearance").click()');
+    assert.equal(await win.webContents.executeJavaScript('document.getElementById("settings-appearance").hidden'),false);
     await win.webContents.executeJavaScript(`(() => {
       const input = document.getElementById('background-hex'); input.value = '#dec5a8'; input.dispatchEvent(new Event('change'));
     })()`); await wait();
@@ -188,6 +242,19 @@ module.exports = async ({ win, createTab, select, closeTab, state, browserSessio
     assert.equal(await win.webContents.executeJavaScript('document.body.dataset.theme'), 'light');
     await win.webContents.executeJavaScript('document.getElementById("background-reset").click()'); await wait();
     assert.equal(state().settings.backgroundColor, null);
+    await win.webContents.executeJavaScript(`(async()=>{
+      const api=window.vela;
+      await api.command('remote-suggestions',false);
+      if((await api.command('search-suggestions','anything')).length)throw Error('Remote suggestions were not disabled');
+      await api.command('remote-suggestions',true);
+      document.getElementById('settings-tab-protection').click();
+      document.getElementById('settings-tracker-editor').open=true;
+      document.getElementById('tracker-list-name').value='Smoke trackers';
+      document.getElementById('tracker-list-content').value='||tracking.example.test^';
+      document.getElementById('tracker-list-form').requestSubmit();
+    })()`);await wait(250);
+    assert.equal(state().customTrackers.lists[0].count,1);
+    assert.equal(await win.webContents.executeJavaScript('document.querySelector("#settings-tracker-lists strong").textContent'),'Smoke trackers');
     await win.webContents.executeJavaScript('document.querySelector("#settings-panel .close-panel").click()');
     const work = await win.webContents.executeJavaScript('window.vela.command("space", "work")');
     assert.equal(work.space, 'work');
@@ -219,16 +286,101 @@ module.exports = async ({ win, createTab, select, closeTab, state, browserSessio
     const wc = tab.view.webContents;
     wc.on('console-message', (event) => { if (event.message?.includes('Vela document-start')) console.error(event.message); });
     await new Promise((resolve) => wc.once('did-finish-load', resolve));
+    assert.ok(pageUserAgent?.endsWith(` Chrome/${process.versions.chrome} Safari/537.36`), pageUserAgent);
+    assert.equal(await wc.executeJavaScript('navigator.userAgent'), pageUserAgent);
     await wc.executeJavaScript(`(() => { const icon=document.createElement('link');icon.rel='icon';icon.href='/favicon.png';document.head.append(icon); })()`);
     for(let attempt=0;attempt<25&&!state().tabs.find(item=>item.id===tab.id).favicon;attempt++)await wait(80);
     assert.match(state().tabs.find(item=>item.id===tab.id).favicon || '', /^data:image\/png;base64,/);
     const pngIcon=state().tabs.find(item=>item.id===tab.id).favicon;
     await win.webContents.executeJavaScript(`window.vela.command('favorite-save',{title:'Icon fixture',url:${JSON.stringify(tab.url)},favicon:${JSON.stringify(state().tabs.find(item=>item.id===tab.id).favicon)}})`);await wait();
+    assert.equal(await win.webContents.executeJavaScript('document.getElementById("toolbar-favorite").getAttribute("aria-pressed")'),'true');
     assert.equal(await win.webContents.executeJavaScript('document.querySelectorAll("#favorites .favorite img").length'),1,'start-page favorites must render the site icon');
     await win.webContents.executeJavaScript('window.vela.command("sidebar")');await wait();
     assert.equal(await sidebarSurface.webContents.executeJavaScript('document.querySelectorAll("#sidebar-pins .arc-favorite img").length'),1,'sidebar favorites must render the site icon');
+    const fixtureState=state();
+    const extraSpaces=Object.fromEntries(Array.from({length:2},(_,i)=>['arc-fixture-'+i,{name:'Space '+i,emoji:'🌍',color:'#7686a5'}]));
+    const extraPins=Array.from({length:8},(_,i)=>({title:'Example '+i,url:'https://example'+i+'.test/'}));
+    const fixtureTabs=[...fixtureState.tabs,{id:999,url:'https://example.test/',title:'Folder fixture',space:fixtureState.space,folder:['Projects','Clients'],pinned:true}];
+    sidebarSurface.webContents.send('vela:state',{...fixtureState,spaces:{...fixtureState.spaces,...extraSpaces},pins:[...fixtureState.pins,...extraPins],tabs:fixtureTabs});await wait();
+    const sidebarLayout=await sidebarSurface.webContents.executeJavaScript(`(()=>{
+      const grid=document.querySelector('.arc-favorites'),spaces=document.querySelector('.space-switch');
+      const rows=selector=>new Set([...document.querySelectorAll(selector)].map(item=>Math.round(item.getBoundingClientRect().top))).size;
+      return {gridRows:rows('.arc-favorite'),gridHeight:grid.clientHeight,gridOverflow:getComputedStyle(grid).overflowY,
+        spaceRows:rows('.space-switch button'),spaceFits:spaces.scrollWidth===spaces.clientWidth,
+        icons:grid.querySelectorAll('.favorite-site-icon').length,folders:document.querySelectorAll('.sidebar-folder .sidebar-folder').length};
+    })()`);
+    assert.ok(sidebarLayout.gridRows>=5&&sidebarLayout.gridHeight>142&&sidebarLayout.gridOverflow==='visible');
+    assert.ok(sidebarLayout.spaceRows===1&&sidebarLayout.spaceFits);
+    assert.equal(sidebarLayout.icons,fixtureState.pins.length+extraPins.length);
+    assert.equal(sidebarLayout.folders,1);
+    sidebarSurface.webContents.send('vela:state',fixtureState);await wait();
+    assert.equal(await sidebarSurface.webContents.executeJavaScript(`(()=>{document.querySelector('.arc-favorite').focus();return getComputedStyle(document.querySelector('.sidebar-content')).scrollbarWidth;})()`),'none');
+    const removedFavorite=state().pins.at(-1);
+    await sidebarSurface.webContents.executeJavaScript(`document.querySelector('.arc-favorite:last-child').dispatchEvent(new MouseEvent('auxclick',{bubbles:true,cancelable:true,button:1}))`);await wait();
+    assert.ok(!state().pins.some(pin=>pin.url===removedFavorite.url));
+    await win.webContents.executeJavaScript(`window.vela.command('favorite-save',${JSON.stringify(removedFavorite)})`);await wait();
+    const beforeFolder=await sidebarSurface.webContents.executeJavaScript('Number(document.getElementById("pinned-count").textContent)');
+    await sidebarSurface.webContents.executeJavaScript(`(()=>{
+      const heading=document.querySelector('.sidebar-section');
+      heading.dispatchEvent(new MouseEvent('contextmenu',{bubbles:true,cancelable:true,clientY:heading.getBoundingClientRect().top+3}));
+      if(document.getElementById('sidebar-folder-menu').hidden)throw Error('Folder menu did not open');
+      document.getElementById('sidebar-folder-action').click();
+      document.getElementById('sidebar-folder-name').value='Social';
+      document.getElementById('sidebar-folder-form').requestSubmit();
+    })()`);await wait();
+    await sidebarSurface.webContents.executeJavaScript(`(()=>{
+      const dataTransfer=new DataTransfer();dataTransfer.setData('text/vela-tab',String(${tab.id}));
+      document.querySelector('.sidebar-folder summary').dispatchEvent(new DragEvent('drop',{bubbles:true,cancelable:true,dataTransfer}));
+    })()`);await wait();
+    assert.deepEqual(state().tabs.find(item=>item.id===tab.id).folder,['Social']);
+    assert.equal(state().tabs.find(item=>item.id===tab.id).pinned,true);
+    assert.equal(await sidebarSurface.webContents.executeJavaScript('Number(document.getElementById("pinned-count").textContent)'),beforeFolder+1);
+    const pinnedRow=`[data-tab-id="${tab.id}"]`;
+    assert.equal(await sidebarSurface.webContents.executeJavaScript(`document.querySelector('${pinnedRow} .tab-close').textContent`),'−');
+    await sidebarSurface.webContents.executeJavaScript(`document.querySelector('${pinnedRow} .tab-close').click()`);await wait();
+    assert.equal(state().tabs.find(item=>item.id===tab.id).pinned,false);
+    await sidebarSurface.webContents.executeJavaScript(`window.vela.command('tab-folder',{id:${tab.id},path:['Social']})`);await wait();
+    await sidebarSurface.webContents.executeJavaScript(`document.querySelector('${pinnedRow}').dispatchEvent(new MouseEvent('auxclick',{bubbles:true,cancelable:true,button:1}))`);await wait();
+    assert.equal(state().tabs.find(item=>item.id===tab.id).pinned,false);
+    await sidebarSurface.webContents.executeJavaScript(`window.vela.command('tab-folder',{id:${tab.id},path:['Social']})`);await wait();
+    await sidebarSurface.webContents.executeJavaScript(`(()=>{
+      document.querySelector('.sidebar-folder summary').dispatchEvent(new MouseEvent('contextmenu',{bubbles:true,cancelable:true}));
+      document.getElementById('sidebar-folder-action').click();
+    })()`);await wait();
+    assert.deepEqual(state().tabs.find(item=>item.id===tab.id).folder,[]);
+    assert.equal(state().tabs.find(item=>item.id===tab.id).pinned,false);
+    assert.equal(state().spaces[state().space].folders.includes('Social'),false);
+    await sidebarSurface.webContents.executeJavaScript(`window.vela.command('tab-folder',{id:${tab.id},path:[],pinned:false})`);
+    const disposable=createTab(tab.url,{lazy:true,background:true});await wait();
+    await sidebarSurface.webContents.executeJavaScript(`document.querySelector('[data-tab-id="${disposable.id}"]').dispatchEvent(new MouseEvent('auxclick',{bubbles:true,cancelable:true,button:1}))`);await wait();
+    assert.ok(!state().tabs.some(item=>item.id===disposable.id));
+    const originalOrder=state().pins.map(pin=>pin.url);
+    const liveOrder=await sidebarSurface.webContents.executeJavaScript(`(()=>{
+      const grid=document.getElementById('sidebar-pins'),[first,second]=grid.children;
+      const target=second.getBoundingClientRect(),dataTransfer=new DataTransfer();
+      const dispatch=(node,type)=>node.dispatchEvent(new DragEvent(type,{bubbles:true,cancelable:true,dataTransfer,clientX:Math.round(target.left+target.width/2),clientY:Math.round(target.top+target.height/2)}));
+      dispatch(first,'dragstart');dispatch(grid,'dragover');
+      const preview=grid.firstElementChild===second;
+      dispatch(first,'dragend');
+      const restored=grid.firstElementChild===first;
+      dispatch(first,'dragstart');dispatch(grid,'dragover');dispatch(grid,'drop');
+      return {preview,restored};
+    })()`);await wait();
+    assert.deepEqual(liveOrder,{preview:true,restored:true});
+    assert.equal(state().pins[0].url,originalOrder[1]);
+    await sidebarSurface.webContents.executeJavaScript(`window.vela.command('favorite-move',{url:${JSON.stringify(originalOrder[0])},direction:-1})`);
     await win.webContents.executeJavaScript('window.vela.command("sidebar")');await wait();
+    await win.webContents.executeJavaScript('document.getElementById("edit-favorites").click()');await wait();
+    assert.equal(await win.webContents.executeJavaScript('document.querySelectorAll("#favorite-list .row-monogram img").length'),1);
+    await win.webContents.executeJavaScript(`(()=>{
+      const dataTransfer=new DataTransfer();dataTransfer.setData('text/vela-favorite',${JSON.stringify(originalOrder[0])});
+      document.querySelectorAll('#favorite-list .overview-row')[1].dispatchEvent(new DragEvent('drop',{bubbles:true,cancelable:true,dataTransfer}));
+    })()`);await wait();
+    assert.equal(state().pins[0].url,originalOrder[1]);
+    await win.webContents.executeJavaScript(`window.vela.command('favorite-move',{url:${JSON.stringify(originalOrder[0])},direction:-1})`);
+    await win.webContents.executeJavaScript('document.querySelector("#favorites-panel .close-panel").click()');await wait();
     await win.webContents.executeJavaScript(`window.vela.command('remove-pin',${JSON.stringify(tab.url)})`);await wait();
+    assert.equal(await win.webContents.executeJavaScript('document.getElementById("toolbar-favorite").getAttribute("aria-pressed")'),'false');
 
     await wc.executeJavaScript(`document.querySelector('link[rel=icon]').href='/favicon.svg'`);
     for(let attempt=0;attempt<2&&state().tabs.find(item=>item.id===tab.id).favicon===pngIcon;attempt++)await wait(80);
@@ -238,9 +390,21 @@ module.exports = async ({ win, createTab, select, closeTab, state, browserSessio
     assert.equal(await wc.executeJavaScript('window.nodeExposed'), false);
     const pageWidth = await wc.executeJavaScript('innerWidth');
     await win.webContents.executeJavaScript('window.vela.command("background-color", "#000000")'); await wait();
-    assert.equal(await wc.executeJavaScript('getComputedStyle(document.documentElement,"::-webkit-scrollbar-track").backgroundColor'), 'rgb(0, 0, 0)');
+    const pageBounds=tab.view.getBounds();
+    captureStep='page-edge scrollbar';
+    const trackPixel=()=>wc.executeJavaScript(`(()=>{
+      const ctx=document.createElement('canvas').getContext('2d',{willReadFrequently:true});
+      ctx.fillStyle=getComputedStyle(document.documentElement,'::-webkit-scrollbar-track').backgroundColor;
+      ctx.fillRect(0,0,1,1);return Array.from(ctx.getImageData(0,0,1,1).data);
+    })()`);
+    assert.equal((await trackPixel())[3],0);
+    assert.equal(updatePageScrollbar({x:pageBounds.x+pageBounds.width-2,y:pageBounds.y+40}),true);await wait(330);
+    assert.deepEqual(await trackPixel(),[0,0,0,255]);
     await win.webContents.executeJavaScript('window.vela.command("background-color", "#dec5a8")'); await wait();
-    assert.equal(await wc.executeJavaScript('getComputedStyle(document.documentElement,"::-webkit-scrollbar-track").backgroundColor'), 'rgb(222, 197, 168)');
+    assert.deepEqual(await trackPixel(),[222,197,168,255]);
+    assert.equal(updatePageScrollbar({x:pageBounds.x+40,y:pageBounds.y+40}),false);
+    for(let attempt=0;attempt<16&&(await trackPixel())[3]!==0;attempt++)await wait(100);
+    assert.equal((await trackPixel())[3],0);
     assert.equal(await wc.executeJavaScript('getComputedStyle(document.documentElement,"::-webkit-scrollbar-button").display'), 'none');
     await win.webContents.executeJavaScript('window.vela.command("background-color", null)'); await wait();
     updateSidebarPointer({ x: 5, y: 160 }, 3000); updateSidebarPointer({ x: 5, y: 160 }, 3120); await wait();
@@ -274,7 +438,15 @@ module.exports = async ({ win, createTab, select, closeTab, state, browserSessio
       assert.equal(width, 1, `${format} conversion must produce a decodable image even under strict site CSP`);
     }
     const toolsTab = createTab(`http://127.0.0.1:${server.address().port}/native-tools`);
-    await new Promise((resolve) => toolsTab.view.webContents.once('did-finish-load', resolve));
+    await new Promise(resolve=>toolsTab.view.webContents.once('did-finish-load',resolve));
+    const trackerFixture=state().customTrackers.lists[0];
+    const blockedBefore=state().customTrackers.blocked;
+    await toolsTab.view.webContents.executeJavaScript('fetch("https://sub.tracking.example.test/probe").catch(()=>null)');
+    assert.equal(state().customTrackers.blocked,blockedBefore+1);
+    await win.webContents.executeJavaScript(`window.vela.command('tracker-list-toggle',{id:${JSON.stringify(trackerFixture.id)},enabled:false})`);
+    assert.equal(state().customTrackers.lists[0].enabled,false);
+    await win.webContents.executeJavaScript(`window.vela.command('tracker-list-remove',{id:${JSON.stringify(trackerFixture.id)}})`);
+    assert.equal(state().customTrackers.lists.length,0);
     const nativeBounds=toolsTab.view.getBounds(),nativeCount=state().tabs.length;
     await toolsTab.view.webContents.executeJavaScript('window.scrollTo(0,400)');
     await win.webContents.executeJavaScript('document.getElementById("extensions-button").click()'); await wait();
@@ -406,8 +578,19 @@ module.exports = async ({ win, createTab, select, closeTab, state, browserSessio
     closeTab(overflowTab.id); select(tab.id);
     win.show();win.focus();await wait(350);
     assert.equal(sidebarSurface.getVisible(),true);
-    assert.equal(await sidebarSurface.webContents.executeJavaScript('getComputedStyle(document.getElementById("sidebar")).transform'),'matrix(1, 0, 0, 1, 0, 0)');
-    const sidebarDetail=await sidebarSurface.webContents.capturePage();fs.writeFileSync(output('sidebar-detail-preview.png'),sidebarDetail.toPNG());
+    const sidebarTransform=()=>sidebarSurface.webContents.executeJavaScript('getComputedStyle(document.getElementById("sidebar")).transform');
+    for(let attempt=0;attempt<10&&(await sidebarTransform())!=='matrix(1, 0, 0, 1, 0, 0)';attempt++)await wait(100);
+    assert.equal(await sidebarTransform(),'matrix(1, 0, 0, 1, 0, 0)',JSON.stringify({
+      sidebar:state().sidebar,overlay:state().overlay,
+      ui:await sidebarSurface.webContents.executeJavaScript(`({className:document.body.className,hidden:document.getElementById('sidebar').hidden,visibility:document.visibilityState,animations:document.getAnimations().map(animation=>animation.currentTime)})`)
+    }));
+    captureStep='pinned sidebar screenshot';
+    let sidebarDetail;
+    for(let attempt=0;attempt<4;attempt++){
+      try{sidebarDetail=await sidebarSurface.webContents.capturePage(undefined,{stayHidden:true,stayAwake:true});break;}
+      catch(error){if(!/UnknownVizError|display surface/i.test(error.message)||attempt===3)throw error;await wait(250);}
+    }
+    fs.writeFileSync(output('sidebar-detail-preview.png'),sidebarDetail.toPNG());
     const liveBefore = state().liveTabs;
     select(dormant[0].id);
     await new Promise((resolve) => dormant[0].view.webContents.once('did-finish-load', resolve));
@@ -443,6 +626,11 @@ module.exports = async ({ win, createTab, select, closeTab, state, browserSessio
     const overviewImage = await win.webContents.capturePage(); fs.writeFileSync(output('tabs-preview.png'), overviewImage.toPNG());
     await win.webContents.executeJavaScript('document.getElementById("tab-search").value="/tab-19"; document.getElementById("tab-search").dispatchEvent(new Event("input"));');
     assert.equal(await win.webContents.executeJavaScript('document.querySelectorAll("#overview-list .overview-card").length'), 1);
+    await win.webContents.executeJavaScript('document.querySelector(".overview-card-preview").dispatchEvent(new MouseEvent("auxclick",{button:1,bubbles:true,cancelable:true}))');
+    await wait();
+    assert.ok(!state().tabs.some(item => item.id === dormant[19].id), 'middle-click closes the tab represented by the preview');
+    assert.equal(state().activeId, tab.id);
+    assert.equal(await win.webContents.executeJavaScript('document.getElementById("tabs-panel").hidden'), false);
     await win.webContents.executeJavaScript('document.querySelector("#tabs-panel .close-panel").click()');
     await win.webContents.executeJavaScript('window.vela.command("theme", "dark")');
     await wait();
@@ -517,6 +705,21 @@ module.exports = async ({ win, createTab, select, closeTab, state, browserSessio
     assert.equal(await win.webContents.executeJavaScript('document.querySelector("#settings-panel h2").textContent'),'Impostazioni');
     await win.webContents.executeJavaScript('document.getElementById("launcher-query").dispatchEvent(new KeyboardEvent("keydown",{key:"Escape",bubbles:true}))');await wait();
     metrics.languages={italian:true,english:true,liveSwitch:true,allSurfaces:true,customNamesPreserved:true};
+    const storeId = 'abcdefghijklmnopabcdefghijklmnop';
+    await dockSurface.webContents.executeJavaScript('document.getElementById("extension-store-input").value=""');
+    const unrelatedStoreTab = createTab(`https://example.test/detail/store-item/${storeId}`, { lazy:true });
+    await wait();
+    assert.equal(await win.webContents.executeJavaScript('document.getElementById("store-listing-button").hidden'), true);
+    const storeTab = createTab(`https://chromewebstore.google.com/detail/store-item/${storeId}`, { lazy:true });
+    await wait();
+    assert.equal(await win.webContents.executeJavaScript('document.getElementById("store-listing-button").hidden'), false);
+    await win.webContents.executeJavaScript('document.getElementById("store-listing-button").click()');
+    await wait();
+    assert.equal(state().dockMode, 'extensions');
+    assert.equal(await dockSurface.webContents.executeJavaScript('document.getElementById("extension-store-input").value'), storeId);
+    closeTab(unrelatedStoreTab.id);
+    closeTab(storeTab.id);
+    await win.webContents.executeJavaScript('window.vela.command("dock-toggle")');
     const privateReports=[];
     for(let index=0;index<(portable?1:2);index++){
       const token=require('node:crypto').randomBytes(16).toString('hex'),file=path.join(app.getPath('temp'),`Vela-private-probe-${token}.json`);

@@ -17,9 +17,12 @@
     <symbol id="i-shield" viewBox="0 0 24 24"><path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6zM8.5 12l2.5 2.5 5-5"/></symbol>
     <symbol id="i-share" viewBox="0 0 24 24"><path d="M8 9H5v12h14V9h-3M12 15V2m-4 4 4-4 4 4"/></symbol>
     <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h5l2 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></symbol>
     <symbol id="i-tabs" viewBox="0 0 24 24"><rect x="8" y="3" width="13" height="14" rx="2"/><path d="M16 17v4H3V7h5"/></symbol>
     <symbol id="i-lock" viewBox="0 0 24 24"><rect x="6" y="10" width="12" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></symbol>
     <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9z"/></symbol>
+    <symbol id="i-private" viewBox="0 0 24 24"><path d="M3 11h18M6 11l2-6 4 1 4-1 2 6M10 16h4"/><circle cx="7" cy="17" r="3"/><circle cx="17" cy="17" r="3"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><path d="M10 3h4l.7 2.4 1.9 1.1 2.4-.6 2 3.5-1.7 1.8v2.2l1.7 1.8-2 3.5-2.4-.6-1.9 1.1L14 21h-4l-.7-2.4-1.9-1.1-2.4.6-2-3.5 1.7-1.8v-2.2L3 8.8l2-3.5 2.4.6 1.9-1.1z"/><circle cx="12" cy="12" r="3"/></symbol>
     <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"/></symbol>
     <symbol id="i-extensions" viewBox="0 0 24 24"><path d="M9 4H4v6a3 3 0 1 1 0 6v4h6a3 3 0 1 1 6 0h4v-6a3 3 0 1 0 0-6V4h-5a3 3 0 1 0-6 0Z"/></symbol>
     <symbol id="i-volume" viewBox="0 0 24 24"><path d="M11 4 6 8H3v8h3l5 4ZM15 8a6 6 0 0 1 0 8M18 4a11 11 0 0 1 0 16"/></symbol>
@@ -43,17 +46,20 @@
       <div class="address-group">
         <button class="icon home-button" id="home-button" data-command="home" title="Pagina iniziale" aria-label="Pagina iniziale" data-i18n-title="Pagina iniziale" data-i18n-aria-label="Pagina iniziale"><svg viewBox="0 0 24 24"><path d="m3 10 9-7 9 7M5 9v12h5v-7h4v7h5V9"/></svg></button>
         <div class="address-wrap">
+          <button id="copy-address" class="icon small" title="Copia link" aria-label="Copia link" data-i18n-title="Copia link" data-i18n-aria-label="Copia link" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a4 4 0 0 0 6 .5l4-4a4 4 0 0 0-5.7-5.7l-2 2M14 11a4 4 0 0 0-6-.5l-4 4a4 4 0 0 0 5.7 5.7l2-2"/></svg></button>
           <svg id="security-icon" hidden><use href="#i-lock"/></svg>
           <input id="address" aria-label="Indirizzo e ricerca" spellcheck="false" autocomplete="off" placeholder="Cerca o inserisci il nome del sito" data-i18n-aria-label="Indirizzo e ricerca" data-i18n-placeholder="Cerca o inserisci il nome del sito">
           <button id="reload" class="icon small" data-command="reload" title="Ricarica (Ctrl+R)" data-i18n-title="Ricarica (Ctrl+R)"><svg><use href="#i-reload"/></svg></button>
           <div class="loading-line" id="loading-line"></div>
         </div>
+        <span id="copy-address-status" role="status" aria-atomic="true"></span>
         <button class="icon protection-button" id="protection" title="Resoconto privacy" aria-label="Resoconto privacy" data-i18n-title="Resoconto privacy" data-i18n-aria-label="Resoconto privacy"><svg><use href="#i-shield"/></svg><span class="status-dot"></span></button>
       </div>
       <div class="right-tools">
+        <button class="icon store-listing-button" id="store-listing-button" data-command="dock-show-extensions" title="Installa in Vela" aria-label="Installa in Vela" data-i18n-title="Installa in Vela" data-i18n-aria-label="Installa in Vela" hidden><svg aria-hidden="true"><use href="#i-plus"/></svg><span data-i18n="Installa in Vela">Installa in Vela</span></button>
         <button class="icon" id="extensions-button" title="Estensioni e strumenti nativi" aria-label="Estensioni e strumenti nativi" aria-expanded="false" data-i18n-title="Estensioni e strumenti nativi" data-i18n-aria-label="Estensioni e strumenti nativi"><svg><use href="#i-extensions"/></svg></button>
         <button class="icon" id="downloads-button" title="Download" data-i18n-title="Download"><svg><use href="#i-download"/></svg><span class="download-dot" hidden></span></button>
-        <button class="icon" data-command="pin" title="Aggiungi ai preferiti (Ctrl+D)" data-i18n-title="Aggiungi ai preferiti (Ctrl+D)"><svg><use href="#i-star"/></svg></button>
+        <button class="icon" id="toolbar-favorite" data-command="pin" title="Aggiungi ai preferiti (Ctrl+D)" aria-pressed="false"><svg><use href="#i-star"/></svg></button>
         <button class="icon" id="share" title="Copia indirizzo" data-i18n-title="Copia indirizzo"><svg><use href="#i-share"/></svg></button>
         <button class="icon" data-command="new" title="Nuova scheda (Ctrl+T)" data-i18n-title="Nuova scheda (Ctrl+T)"><svg><use href="#i-plus"/></svg></button>
         <button class="icon" id="overview" title="Panoramica schede" data-i18n-title="Panoramica schede"><svg><use href="#i-tabs"/></svg></button>
@@ -63,15 +69,19 @@
     <nav id="tabs" class="tab-bar" role="tablist" aria-label="Schede" data-i18n-aria-label="Schede"></nav>
   </header>
   <aside id="sidebar" hidden>
-    <div class="sidebar-heading"><span id="space-title" data-i18n="Personale">Personale</span><div><button class="icon small" id="sidebar-edit-favorites" title="Modifica preferiti" data-i18n-title="Modifica preferiti"><svg><use href="#i-star"/></svg></button><button class="icon small" id="sidebar-search" title="Cerca o inserisci indirizzo" data-i18n-title="Cerca o inserisci indirizzo"><svg><use href="#i-plus"/></svg></button><button class="icon small" id="space-settings" title="Personalizza spazio" aria-label="Personalizza spazio" data-i18n-title="Personalizza spazio" data-i18n-aria-label="Personalizza spazio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m10 3-1 3-3 1-3 3 2 2-1 3 3 3 3-1 2 2 3-1 1-3 3-2-1-3-3-1-1-3Z"/><circle cx="11" cy="11" r="3"/></svg></button></div></div>
+    <div class="sidebar-heading"><span id="space-title" data-i18n="Personale">Personale</span><div><button class="icon small" id="sidebar-edit-favorites" title="Modifica preferiti" data-i18n-title="Modifica preferiti"><svg><use href="#i-star"/></svg></button><button class="icon small" id="sidebar-search" title="Cerca o inserisci indirizzo" data-i18n-title="Cerca o inserisci indirizzo"><svg><use href="#i-plus"/></svg></button><button class="icon small" id="space-settings" title="Personalizza spazio" aria-label="Personalizza spazio" data-i18n-title="Personalizza spazio" data-i18n-aria-label="Personalizza spazio"><svg aria-hidden="true"><use href="#i-settings"/></svg></button></div></div>
+    <div class="sidebar-content">
     <div id="sidebar-pins" class="arc-favorites" aria-label="Preferiti" data-i18n-aria-label="Preferiti"></div>
     <div class="sidebar-divider"></div>
     <div class="sidebar-section"><h3 data-i18n="Fissate">Fissate</h3><span id="pinned-count"></span></div>
+    <form id="sidebar-folder-form" hidden><input id="sidebar-folder-name" maxlength="80" required aria-label="Nome della cartella" data-i18n-aria-label="Nome della cartella"><button type="submit" class="secondary" data-i18n="Crea">Crea</button></form>
     <div id="sidebar-fixed" class="vertical-tabs pinned-tabs" role="tablist" aria-label="Schede fissate" data-i18n-aria-label="Schede fissate"></div>
     <button class="sidebar-new" data-command="new"><svg><use href="#i-plus"/></svg><span data-i18n="Nuova scheda">Nuova scheda</span><kbd>Ctrl T</kbd></button>
     <div id="sidebar-tabs" class="vertical-tabs" role="tablist" aria-label="Schede aperte" data-i18n-aria-label="Schede aperte"></div>
-    <div class="sidebar-bottom"><button class="icon small" id="history-button" title="Cronologia" data-i18n-title="Cronologia">◷</button><div class="space-switch"><button id="space-personal" title="Spazio personale" aria-label="Spazio personale" data-i18n-title="Spazio personale" data-i18n-aria-label="Spazio personale">P</button><button id="space-work" title="Spazio lavoro" aria-label="Spazio lavoro" data-i18n-title="Spazio lavoro" data-i18n-aria-label="Spazio lavoro">L</button></div><button class="icon small" data-command="private" title="Finestra privata" data-i18n-title="Finestra privata">◐</button></div>
+    </div>
+    <div class="sidebar-bottom"><button class="icon small" id="history-button" title="Cronologia" data-i18n-title="Cronologia">◷</button><div class="space-switch"><button id="space-personal" title="Spazio personale" aria-label="Spazio personale" data-i18n-title="Spazio personale" data-i18n-aria-label="Spazio personale">P</button><button id="space-work" title="Spazio lavoro" aria-label="Spazio lavoro" data-i18n-title="Spazio lavoro" data-i18n-aria-label="Spazio lavoro">L</button></div><button class="icon small" data-command="private" title="Finestra privata" data-i18n-title="Finestra privata" aria-label="Finestra privata" data-i18n-aria-label="Finestra privata"><svg aria-hidden="true"><use href="#i-private"/></svg></button></div>
     <div class="sidebar-footer" id="sidebar-memory" data-i18n="Chromium, con un tocco di calma.">Chromium, con un tocco di calma.</div>
+    <div id="sidebar-folder-menu" hidden><button id="sidebar-folder-action" type="button"></button></div>
   </aside>
   <main id="start">
     <section class="start-content">
@@ -85,9 +95,9 @@
         <span class="card-arrow">›</span>
       </button>
       <div class="start-note" data-i18n="Meno distrazioni. Più spazio a ciò che conta."><span class="note-dot"></span> Meno distrazioni. Più spazio a ciò che conta.</div>
-      <div class="quick-actions"><button id="start-tabs"><svg><use href="#i-tabs"/></svg><span id="open-tab-count" data-i18n="Le tue schede">Le tue schede</span></button><button data-command="private">◐ <span data-i18n="Navigazione privata">Navigazione privata</span></button><button id="start-settings">⚙ <span data-i18n="Personalizza Vela">Personalizza Vela</span></button></div>
+      <div class="quick-actions"><button id="start-tabs"><svg><use href="#i-tabs"/></svg><span id="open-tab-count" data-i18n="Le tue schede">Le tue schede</span></button><button data-command="private"><svg aria-hidden="true"><use href="#i-private"/></svg><span data-i18n="Navigazione privata">Navigazione privata</span></button><button id="start-settings">⚙ <span data-i18n="Personalizza Vela">Personalizza Vela</span></button></div>
     </section>
-    <div class="start-bottom"><span id="app-version"></span></div>
+    <div class="start-bottom"><span id="app-version"></span><span id="start-copyright">© fur6i</span></div>
   </main>
   <section id="error" hidden><div class="error-compass">◈</div><h1 data-i18n="Impossibile aprire la pagina">Impossibile aprire la pagina</h1><p id="error-detail"></p><button class="primary" data-command="reload" data-i18n="Riprova">Riprova</button></section>
   <section id="panic-cover" hidden aria-live="polite"><span data-i18n="Apertura sito…">Apertura sito…</span></section>
@@ -150,23 +160,88 @@
       <label class="space-label" data-i18n="Icona">Icona</label><div id="space-emojis" aria-label="Scegli un’emoji" data-i18n-aria-label="Scegli un’emoji"></div>
       <div class="space-image-actions"><button class="secondary" type="button" id="space-image" data-i18n="Scegli immagine…">Scegli immagine…</button><button class="secondary" type="button" id="space-image-remove" data-i18n="Usa emoji">Usa emoji</button><small data-i18n="PNG, JPEG, WebP o ICO · max 5 MB">PNG, JPEG, WebP o ICO · max 5 MB</small></div>
       <div class="setting-row"><label for="space-color" data-i18n="Colore dello spazio">Colore dello spazio</label><input type="color" id="space-color" value="#7686a5"></div><div id="space-colors" aria-label="Colori suggeriti" data-i18n-aria-label="Colori suggeriti"></div>
-      <div class="panel-actions"><span id="space-save-status" role="status"></span><button class="primary" type="submit" data-i18n="Salva spazio">Salva spazio</button></div></form>
+      <div class="panel-actions"><button class="text-button" id="space-delete" type="button" data-i18n="Elimina spazio">Elimina spazio</button><button class="secondary" id="space-add" type="button" data-i18n="Nuovo spazio">Nuovo spazio</button><span id="space-save-status" role="status"></span><button class="primary" type="submit" data-i18n="Salva spazio">Salva spazio</button></div></form>
     </section>
     <section class="popover settings-panel" id="settings-panel" role="dialog" aria-modal="true" aria-label="Impostazioni" hidden data-i18n-aria-label="Impostazioni"><button class="close-panel" aria-label="Chiudi" data-i18n-aria-label="Chiudi">×</button><h2 data-i18n="Impostazioni">Impostazioni</h2>
+      <nav class="settings-nav" aria-label="Categorie impostazioni" data-i18n-aria-label="Categorie impostazioni" role="tablist">
+        <button type="button" role="tab" aria-controls="settings-general" id="settings-tab-general" data-settings-tab="general"><svg><use href="#i-tabs"/></svg><span data-i18n="Generali">Generali</span></button>
+        <button type="button" role="tab" aria-controls="settings-appearance" id="settings-tab-appearance" data-settings-tab="appearance"><svg><use href="#i-image"/></svg><span data-i18n="Aspetto">Aspetto</span></button>
+        <button type="button" role="tab" aria-controls="settings-protection" id="settings-tab-protection" data-settings-tab="protection"><svg><use href="#i-shield"/></svg><span>Privacy</span></button>
+        <button type="button" role="tab" aria-controls="settings-data" id="settings-tab-data" data-settings-tab="data"><svg><use href="#i-folder"/></svg><span data-i18n="Dati">Dati</span></button>
+        <button type="button" role="tab" aria-controls="settings-advanced" id="settings-tab-advanced" data-settings-tab="advanced"><svg><use href="#i-extensions"/></svg><span data-i18n="Avanzate">Avanzate</span></button>
+      </nav>
+      <div class="settings-body">
       <div id="update-banner" class="update-banner" hidden><span id="update-message"></span><button class="primary" data-command="install-update" data-i18n="Riavvia">Riavvia</button></div>
+      <section class="settings-category" id="settings-general" role="tabpanel" aria-labelledby="settings-tab-general">
+      <h3 data-i18n="Navigazione">Navigazione</h3>
       <div class="setting-row"><div><strong data-i18n="Lingua">Lingua</strong><span data-i18n="Cambia la lingua dell’interfaccia senza riavviare">Cambia la lingua dell’interfaccia senza riavviare</span></div><select id="language-select" aria-label="Lingua" data-i18n-aria-label="Lingua"><option value="it">Italiano</option><option value="en">English</option></select></div>
       <div class="setting-row"><div><strong data-i18n="Motore di ricerca">Motore di ricerca</strong><span data-i18n="Per le ricerche dalla barra degli indirizzi">Per le ricerche dalla barra degli indirizzi</span></div><select id="search-engine" aria-label="Motore di ricerca" data-i18n-aria-label="Motore di ricerca"><option value="" disabled data-i18n="Scegli…">Scegli…</option><option value="google">Google</option><option value="bing">Bing</option><option value="brave">Brave Search</option><option value="ecosia">Ecosia</option></select></div>
+      <div class="setting-row"><div><strong data-i18n="Suggerimenti dal web">Suggerimenti dal web</strong><span data-i18n="Invia il testo digitato al motore scelto per ottenere suggerimenti">Invia il testo digitato al motore scelto per ottenere suggerimenti</span></div><input type="checkbox" role="switch" id="suggestions-setting" aria-label="Suggerimenti dal web" data-i18n-aria-label="Suggerimenti dal web"></div>
+      </section>
+      <section class="settings-category" id="settings-appearance" role="tabpanel" aria-labelledby="settings-tab-appearance" hidden>
+      <h3 data-i18n="Interfaccia e pagine">Interfaccia e pagine</h3>
       <div class="setting-row"><div><strong data-i18n="Barra laterale">Barra laterale</strong><span data-i18n="Compare avvicinando il cursore al bordo sinistro">Compare avvicinando il cursore al bordo sinistro</span></div><select id="sidebar-mode" aria-label="Modalità barra laterale" data-i18n-aria-label="Modalità barra laterale"><option value="auto" data-i18n="A comparsa">A comparsa</option><option value="pinned" data-i18n="Sempre visibile">Sempre visibile</option></select></div>
+      <div class="setting-row"><div><strong data-i18n="Scrollbar delle pagine web">Scrollbar delle pagine web</strong><span data-i18n="Controlla quando mostrare la barra al bordo della pagina">Controlla quando mostrare la barra al bordo della pagina</span></div><select id="page-scrollbar-setting" aria-label="Scrollbar delle pagine web" data-i18n-aria-label="Scrollbar delle pagine web"><option value="edge" data-i18n="Al bordo">Al bordo</option><option value="always" data-i18n="Sempre visibile">Sempre visibile</option><option value="hidden" data-i18n="Nascosta">Nascosta</option></select></div>
       <div class="background-setting"><div class="setting-row"><div><strong data-i18n="Sfondo">Sfondo</strong><span data-i18n="Qualsiasi colore, con riflessi e sfumature leggere">Qualsiasi colore, con riflessi e sfumature leggere</span></div><div class="color-controls"><input type="color" id="background-color" value="#d9e4ef" aria-label="Scegli colore dello sfondo" data-i18n-aria-label="Scegli colore dello sfondo"><input type="text" id="background-hex" maxlength="7" aria-label="Colore esadecimale" placeholder="#d9e4ef" spellcheck="false" data-i18n-aria-label="Colore esadecimale"></div></div><div class="background-presets" aria-label="Colori dello sfondo" data-i18n-aria-label="Colori dello sfondo"><button class="color-swatch swatch-ice" data-color="#d9e4ef" title="Ghiaccio" aria-label="Sfondo ghiaccio" data-i18n-title="Ghiaccio" data-i18n-aria-label="Sfondo ghiaccio"></button><button class="color-swatch swatch-blue" data-color="#29415e" title="Blu" aria-label="Sfondo blu" data-i18n-title="Blu" data-i18n-aria-label="Sfondo blu"></button><button class="color-swatch swatch-black" data-color="#08090c" title="Nero" aria-label="Sfondo nero" data-i18n-title="Nero" data-i18n-aria-label="Sfondo nero"></button><button class="color-swatch swatch-lilac" data-color="#b8a5c8" title="Lilla" aria-label="Sfondo lilla" data-i18n-title="Lilla" data-i18n-aria-label="Sfondo lilla"></button><button class="color-swatch swatch-sage" data-color="#a7b6a7" title="Salvia" aria-label="Sfondo salvia" data-i18n-title="Salvia" data-i18n-aria-label="Sfondo salvia"></button><button class="color-swatch swatch-sand" data-color="#d3c1aa" title="Sabbia" aria-label="Sfondo sabbia" data-i18n-title="Sabbia" data-i18n-aria-label="Sfondo sabbia"></button><button id="background-reset" class="text-button" data-i18n="Automatico">Automatico</button></div><p id="background-error" role="status" hidden data-i18n="Usa un colore valido, per esempio #121212.">Usa un colore valido, per esempio #121212.</p></div>
       <div class="setting-row"><div><strong data-i18n="Tema delle pagine">Tema delle pagine</strong><span data-i18n="Aspetto dei siti; lo sfondo personalizzato adatta il testo">Aspetto dei siti; lo sfondo personalizzato adatta il testo</span></div><select id="theme-select" aria-label="Tema delle pagine" data-i18n-aria-label="Tema delle pagine"><option value="system" data-i18n="Automatico">Automatico</option><option value="light" data-i18n="Chiaro">Chiaro</option><option value="dark" data-i18n="Scuro">Scuro</option></select></div>
-      <div class="setting-row"><div><strong data-i18n="Connessioni HTTPS">Connessioni HTTPS</strong><span data-i18n="Aggiorna gli indirizzi HTTP pubblici a HTTPS">Aggiorna gli indirizzi HTTP pubblici a HTTPS</span></div><input type="checkbox" role="switch" id="https-switch" aria-label="Usa HTTPS" data-i18n-aria-label="Usa HTTPS"></div>
       <div class="setting-row"><div><strong data-i18n="Dimensione pagina">Dimensione pagina</strong><span id="zoom-value">100%</span></div><div class="segmented"><button id="zoom-out" aria-label="Riduci zoom" data-i18n-aria-label="Riduci zoom">−</button><button id="zoom-reset" title="Ripristina zoom" data-i18n-title="Ripristina zoom">100%</button><button id="zoom-in" aria-label="Aumenta zoom" data-i18n-aria-label="Aumenta zoom">+</button></div></div>
+      </section>
+      <section class="settings-category" id="settings-protection" role="tabpanel" aria-labelledby="settings-tab-protection" hidden>
+      <h3 data-i18n="Protezione della navigazione">Protezione della navigazione</h3>
+      <div class="setting-row"><div><strong data-i18n="Connessioni HTTPS">Connessioni HTTPS</strong><span data-i18n="Aggiorna gli indirizzi HTTP pubblici a HTTPS">Aggiorna gli indirizzi HTTP pubblici a HTTPS</span></div><input type="checkbox" role="switch" id="https-switch" aria-label="Usa HTTPS" data-i18n-aria-label="Usa HTTPS"></div>
+      <div class="setting-row"><strong data-i18n="Blocca pubblicità">Blocca pubblicità</strong><input type="checkbox" role="switch" id="settings-adblock" aria-label="Blocca pubblicità" data-i18n-aria-label="Blocca pubblicità"></div>
+      <div class="setting-row"><strong data-i18n="Blocca tracker">Blocca tracker</strong><input type="checkbox" role="switch" id="settings-tracking" aria-label="Blocca tracker" data-i18n-aria-label="Blocca tracker"></div>
+      <div class="setting-row"><strong data-i18n="Eccezione tracker per il sito corrente">Eccezione tracker per il sito corrente</strong><input type="checkbox" role="switch" id="settings-tracker-exception" aria-label="Eccezione tracker per il sito corrente" data-i18n-aria-label="Eccezione tracker per il sito corrente"></div>
+      <h3 data-i18n="Liste antitracciamento">Liste antitracciamento</h3>
+      <p class="settings-note" data-i18n="Accetta domini, file hosts e regole di dominio come ||tracker.example^.">Accetta domini, file hosts e regole di dominio come ||tracker.example^.</p>
+      <p id="settings-custom-blocked" class="settings-note"></p>
+      <div id="settings-tracker-lists"></div>
+      <details id="settings-tracker-editor"><summary data-i18n="Aggiungi una lista">Aggiungi una lista</summary>
+        <form id="tracker-list-form"><label><span data-i18n="Nome della lista">Nome della lista</span><input id="tracker-list-name" maxlength="80"></label>
+        <label><span data-i18n="Domini e regole">Domini e regole</span><textarea id="tracker-list-content" maxlength="1048576" spellcheck="false" rows="4" required></textarea></label>
+        <button type="submit" class="primary" data-i18n="Aggiungi lista">Aggiungi lista</button></form>
+      </details>
+      <button id="tracker-list-import" type="button" class="secondary" data-i18n="Importa lista da file">Importa lista da file</button>
+      <p id="tracker-list-status" class="settings-note" role="status"></p>
+      </section>
+      <section class="settings-category" id="settings-data" role="tabpanel" aria-labelledby="settings-tab-data" hidden>
+      <h3 data-i18n="Dati di navigazione">Dati di navigazione</h3>
+      <div class="tool-grid"><button id="settings-favorites" data-i18n="☆ Modifica preferiti">☆ Modifica preferiti</button><button data-command="private" data-i18n="◐ Nuova finestra privata">◐ Nuova finestra privata</button><button id="settings-history" data-i18n="◷ Cronologia">◷ Cronologia</button><button id="settings-passwords" data-i18n="Password manager">Password manager</button><button id="settings-arc" data-i18n="Importa da Arc">Importa da Arc</button></div>
+      <button class="danger-link" data-command="clear-data" data-i18n="Cancella dati di navigazione…">Cancella dati di navigazione…</button>
+      </section>
+      <section class="settings-category" id="settings-advanced" role="tabpanel" aria-labelledby="settings-tab-advanced" hidden>
+      <h3 data-i18n="Prestazioni e strumenti">Prestazioni e strumenti</h3>
       <div class="setting-row"><div><strong data-i18n="Risparmio memoria">Risparmio memoria</strong><span id="memory-status" data-i18n="Le schede ripristinate si caricano quando le apri">Le schede ripristinate si caricano quando le apri</span></div><button class="secondary" data-command="sleep-tabs" data-i18n="Sospendi altre">Sospendi altre</button></div>
-      <div class="tool-grid"><button id="settings-favorites" data-i18n="☆ Modifica preferiti">☆ Modifica preferiti</button><button data-command="private" data-i18n="◐ Nuova finestra privata">◐ Nuova finestra privata</button><button id="settings-history" data-i18n="◷ Cronologia">◷ Cronologia</button><button data-command="duplicate" data-i18n="⧉ Duplica scheda">⧉ Duplica scheda</button><button data-command="print" data-i18n="⌘ Stampa pagina">⌘ Stampa pagina</button></div>
-      <button class="danger-link" data-command="clear-data" data-i18n="Cancella dati di navigazione…">Cancella dati di navigazione…</button><div class="version-note" id="version-note"></div>
+      <div class="tool-grid"><button data-command="duplicate" data-i18n="⧉ Duplica scheda">⧉ Duplica scheda</button><button data-command="print" data-i18n="⌘ Stampa pagina">⌘ Stampa pagina</button></div>
+      <h3 data-i18n="Scorciatoie">Scorciatoie</h3>
+      <dl class="settings-shortcuts"><div><dt data-i18n="Nuova scheda">Nuova scheda</dt><dd><kbd>Ctrl T</kbd></dd></div><div><dt data-i18n="Finestra privata">Finestra privata</dt><dd><kbd>Ctrl Shift N</kbd></dd></div><div><dt data-i18n="Chiudi scheda">Chiudi scheda</dt><dd><kbd>Ctrl W</kbd></dd></div></dl>
+      <div class="version-note" id="version-note"></div>
+      </section>
+      </div>
+    </section>
+    <section class="popover settings-panel" id="passwords-panel" role="dialog" aria-modal="true" aria-label="Password manager" hidden>
+      <button class="close-panel" aria-label="Chiudi" data-i18n-aria-label="Chiudi">×</button><h2>Password manager</h2>
+      <p class="panel-footnote" data-i18n="Cifratura locale AES-256-GCM e Windows DPAPI. Ogni compilazione richiede l’autenticazione Windows.">Cifratura locale AES-256-GCM e Windows DPAPI. Ogni compilazione richiede l’autenticazione Windows.</p>
+      <div class="panel-actions"><button class="secondary" id="vault-unlock" data-i18n="Sblocca con Windows">Sblocca con Windows</button><button class="secondary" id="vault-lock" data-i18n="Blocca">Blocca</button></div>
+      <div id="vault-list" class="vault-list"></div>
+      <form id="vault-form" class="vault-form" hidden autocomplete="off">
+        <label><span data-i18n="Sito HTTPS">Sito HTTPS</span><input id="vault-origin" type="url" placeholder="https://example.com" maxlength="4096" required autocomplete="off"></label>
+        <label><span data-i18n="Nome utente">Nome utente</span><input id="vault-username" maxlength="512" autocomplete="off"></label>
+        <label><span data-i18n="Password">Password</span><input id="vault-password" type="password" maxlength="4096" required autocomplete="new-password"></label>
+        <button class="secondary" type="submit" data-i18n="Salva con Windows">Salva con Windows</button>
+      </form><p id="vault-status" class="panel-footnote" role="status"></p>
+    </section>
+    <section class="popover settings-panel" id="arc-panel" role="dialog" aria-modal="true" aria-label="Importa da Arc" hidden>
+      <button class="close-panel" aria-label="Chiudi" data-i18n-aria-label="Chiudi">×</button><h2 data-i18n="Importa da Arc">Importa da Arc</h2>
+      <p class="panel-footnote" data-i18n="In Arc: Impostazioni → Avanzate → Esporta spazi e schede. Seleziona Arc Data Export.md per ricreare spazi, schede sospese e preferiti.">In Arc: Impostazioni → Avanzate → Esporta spazi e schede. Seleziona Arc Data Export.md per ricreare spazi, schede sospese e preferiti.</p>
+      <p class="panel-footnote" data-i18n="Per le password, esporta un CSV dal password manager di Arc e selezionalo insieme al file MD. Il CSV contiene password in chiaro: conservalo con cura ed eliminalo quando non serve più. Vela non lo copia né lo elimina.">Per le password, esporta un CSV dal password manager di Arc e selezionalo insieme al file MD. Il CSV contiene password in chiaro: conservalo con cura ed eliminalo quando non serve più. Vela non lo copia né lo elimina.</p>
+      <p class="panel-footnote" data-i18n="Seleziona di nuovo il file MD per sistemare le cartelle già importate come spazi. L’anteprima indica quante schede verranno spostate.">Seleziona di nuovo il file MD per sistemare le cartelle già importate come spazi. L’anteprima indica quante schede verranno spostate.</p>
+      <button class="secondary" id="arc-import" data-i18n="Scegli esportazioni e importa…">Scegli esportazioni e importa…</button><p id="arc-status" class="panel-footnote" role="status"></p>
     </section>
   </div>
   <script src="i18n.js"></script>
   <script src="renderer.js"></script>
+  <script src="settings-ui.js"></script>
+  <script src="vault-ui.js"></script>
 </body>
 </html>
