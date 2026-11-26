@@ -2,6 +2,35 @@ const {t,localizedDialog}=require('./i18n.js');
 const fs = require('node:fs');
 const path = require('node:path');
 const {extensionId,crxPayload,extractZip,manifestInfo,MAX_CRX}=require('./extension-package.cjs');
+
+function storeResponse(net, url, { signal }) {
+  return new Promise((resolve, reject) => {
+    signal.throwIfAborted();
+    const request = net.request({ url, redirect: 'manual', credentials: 'omit' });
+    let body;
+    const abort = () => {
+      reject(signal.reason);
+      body?.destroy(signal.reason);
+      request.abort();
+    };
+    signal.addEventListener('abort', abort, { once: true });
+    request.once('close', () => signal.removeEventListener('abort', abort));
+    request.once('error', reject);
+    // Let the shelf validate the destination before issuing the next request.
+    request.once('redirect', (status, _method, location) => {
+      resolve({ status, headers: new Headers({ location }) });
+      request.abort();
+    });
+    request.once('response', response => {
+      body = response;
+      const status = response.statusCode;
+      resolve({ status, ok: status === 200, body });
+      if (status !== 200) request.abort();
+    });
+    request.end();
+  });
+}
+
 class ExtensionShelf {
   constructor({ BrowserWindow, dialog, getWindow, getSession, paths, save, notify, openPopup,storeRoot,managedIds=[],fetchImpl,getLanguage=()=> 'it' }) {
     Object.assign(this, { BrowserWindow, dialog, getWindow, getSession, paths, save, notify, openPopup,storeRoot,managedIds,fetchImpl });
@@ -92,4 +121,4 @@ class ExtensionShelf {
   }
   close() { for (const window of this.windows) window.close(); }
 }
-module.exports = { ExtensionShelf };
+module.exports = { ExtensionShelf, storeResponse };
