@@ -43,6 +43,24 @@ function scrollbarStyles(background, dark) {
   const base = color(background) || (dark ? '#252c3e' : '#d9e4ef');
   const tint = darkBackground(base) ? 255 : 0;
   const mix = (ratio) => '#' + [1, 3, 5].map((index) => Math.round(parseInt(base.slice(index, index + 2), 16) * (1 - ratio) + tint * ratio).toString(16).padStart(2, '0')).join('');
-  return `::-webkit-scrollbar{width:10px!important;height:10px!important}::-webkit-scrollbar-track,::-webkit-scrollbar-corner{background:${base}!important}::-webkit-scrollbar-thumb{background:${mix(.32)}!important;border:2px solid ${base}!important;border-radius:12px!important}::-webkit-scrollbar-thumb:hover{background:${mix(.48)}!important}::-webkit-scrollbar-button{display:none!important;width:0!important;height:0!important}*{scrollbar-width:auto!important;scrollbar-color:auto!important}`;
+  return `
+    @property --vela-edge-visibility{syntax:"<percentage>";inherits:true;initial-value:0%}
+    ::-webkit-scrollbar{width:10px!important;height:10px!important}
+    ::-webkit-scrollbar-track,::-webkit-scrollbar-corner{background:${base}!important}
+    ::-webkit-scrollbar-thumb{background:${mix(.32)}!important;border:2px solid ${base}!important;border-radius:12px!important}
+    ::-webkit-scrollbar-thumb:hover{background:${mix(.48)}!important}
+    :is(:root,body)::-webkit-scrollbar-track,:is(:root,body)::-webkit-scrollbar-corner{
+      background:color-mix(in srgb,${base} var(--vela-edge-visibility,0%),transparent)!important
+    }
+    :is(:root,body)::-webkit-scrollbar-thumb{
+      background:color-mix(in srgb,${mix(.32)} var(--vela-edge-visibility,0%),transparent)!important;
+      border-color:color-mix(in srgb,${base} var(--vela-edge-visibility,0%),transparent)!important
+    }
+    :is(:root,body)::-webkit-scrollbar-thumb:hover{
+      background:color-mix(in srgb,${mix(.48)} var(--vela-edge-visibility,0%),transparent)!important
+    }
+    ::-webkit-scrollbar-button{display:none!important;width:0!important;height:0!important}
+    *{scrollbar-width:auto!important;scrollbar-color:auto!important}
+  `;
 }
 module.exports = { DEFAULT_FAVORITES, favorite, favoritesFromProfile, color, darkBackground, scrollbarStyles };
