@@ -28,15 +28,37 @@ Vela brings a restrained, glass-inspired interface to Chromium browsing on Windo
 
 Its visual direction draws inspiration from Safari, while its workspace navigation takes cues from Arc. Vela is an independent project built with Electron and Chromium.
 
+## What's new in 0.12.0
+
+- **Tab Overview:** middle-click any tab preview to close that tab.
+- **Chrome Web Store:** fixed downloads that stopped at the Store's redirect. Open an extension listing, choose **Install in Vela**, then review the permissions before confirming. Installation of Tab Translate 2.0.1 was verified in a test profile. Its context-menu integration requires an API unavailable in Electron.
+- **Browser interface:** the settings panel is centered, the address bar has a copy-link button, and the start page shows © fur6i in the bottom-right corner.
+
+## Passwords and migration
+
+Vela 0.12.0 uses the same installer identity and browsing profile as stable Vela 0.11.0. Data from the earlier Vela Beta builds remains in its separate profile.
+
+- **Encrypted local password manager:** open Settings → Password manager. The vault encrypts usernames, origins and passwords with AES-256-GCM; its random key is protected by Windows DPAPI. Unlocking the list, saving/deleting credentials and every fill require fresh Windows account authentication through the system credential dialog. Your Windows password stays in a short-lived native helper and is never sent to JavaScript, files or logs.
+- **Click-to-fill:** click a username/password field on an HTTPS login form, choose the account from Vela's browser-owned menu, then authenticate with Windows. Matching is exact by origin, including the port. Vela checks the document and selected tab again after authentication, refuses cross-origin form actions and does not submit the form. Vela offers to save credentials after you submit a supported sign-in form. You can also save from the field menu or add credentials in Settings. Registration/change-password forms, cross-origin frames and ambiguous forms are intentionally excluded.
+- **Import from Arc:** export **Spaces and tabs** in Arc Settings → Advanced, then select **Arc Data Export.md** in Vela Settings → Import from Arc. Spaces and links are recreated as dormant pinned tabs; favorites are imported too. Vela preserves folder nesting where the export identifies it. To repair a previous import, select the same Markdown file again and review the proposed tab moves. History, cookies, signed-in sessions and extensions are outside the import. A confirmation summarizes the import; existing entries are deduplicated. Vela displays up to four spaces. Extra spaces become folders. The import allows up to 80 tabs and 256 favorites.
+- **Passwords from Arc:** if its password manager offers CSV export, select that CSV together with the MD file, or separately. Vela accepts Chromium-style `url,username,password` columns and encrypts accepted HTTPS credentials after Windows authentication. It does not extract Arc encryption keys or decrypt its profile database. The exported CSV is plaintext: protect it and delete it yourself once no longer needed. Vela leaves the source files unchanged.
+
+On supported Windows 11 systems, Vela uses Windows Hello. If Hello is unavailable, Vela requests the Windows account password. Private windows cannot access the vault or import data. The manager list locks after 60 seconds, on closing its panel, and when Windows locks/suspends. It has no cloud sync or recovery service: a copied vault cannot simply be unlocked with another Windows account. Malware running as the same Windows user, a compromised main process or a compromised destination website remain outside this protection boundary. See [SECURITY.md](SECURITY.md).
+
+For local development, run `npm ci` and `npm start` from this folder. The native helper compiles on demand with the Windows .NET Framework C# compiler; packaged builds compile it once through `scripts/build-auth.cjs` and include it as a resource. No PowerShell execution-policy changes are required. Verify with `npm run check`, `npm run smoke`, and `node scripts/audit-release.cjs`. Successful OS authentication still requires a manual check with your own account; automated tests never request real credentials.
+
+Arc export format reference: [Arc Help Center](https://resources.arc.net/hc/en-us/articles/25583851606039-How-Do-I-Export-My-Data-from-Arc). System authentication uses Microsoft's [credential dialog](https://learn.microsoft.com/en-us/windows/win32/api/wincred/nf-wincred-creduipromptforwindowscredentialsw) and [LogonUser](https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-logonuserw) APIs. These product names are descriptive; Vela is not affiliated with their owners.
+
 ## Features
 
 - **Minimal glass interface:** subtle gradients, customizable background colors and light/dark appearance.
 - **Sidebar on demand:** reveal it from the left edge or keep it pinned.
-- **Customizable spaces:** separate your tabs into Personal and Work, with editable names, colors, emoji and images.
-- **Flexible tab management:** pinned tabs, drag-to-reorder, duplication, muting, reopening and a visual tab overview.
+- **Customizable spaces:** organize your tabs in up to four spaces with editable names, colors, emoji and images.
+- **Flexible tab management:** pinned tabs and folders, drag-to-reorder, duplication, muting, reopening and a visual tab overview.
 - **Quick navigation:** a new-tab launcher with search suggestions and shortcuts to recently used tabs.
 - **Your search engine:** choose Google, Bing, Brave Search or Ecosia during setup.
-- **Editable favorites:** organize shortcuts with website icons.
+- **Editable favorites:** reorder shortcuts with website icons in the sidebar or favorites editor.
+- **Custom tracker lists:** add domains, hosts files or supported domain rules in Settings → Privacy.
 - **Italian and English:** switch the interface language instantly in Settings. The Windows installer also offers both languages.
 - **Compact downloads:** manage transfers in a side popup without covering the whole page.
 
@@ -61,7 +83,7 @@ Tools live in a reorderable dock and open compact panels alongside your browsing
 
 ## Extensions
 
-Install extensions from a Chrome Web Store URL or ID, or load an unpacked extension folder.
+Use **Install in Vela** on a Chrome Web Store listing, paste a Store URL or ID into the extensions dock, or load an unpacked extension folder.
 
 Store packages undergo signature and identity verification, bounded extraction and a permission confirmation before loading. Compatibility depends on the extension APIs supported by Electron: some extensions may install but not work fully.
 
@@ -86,10 +108,10 @@ Requires **Windows 10 or 11, x64**.
 
 Published builds are available from [GitHub Releases](https://github.com/fur6i/vela/releases):
 
-- **Installer:** recommended for regular use; supports updates from published GitHub releases.
+- **Installer:** recommended for regular use. Stable builds support updates from published GitHub releases.
 - **Portable executable:** runs without installation and is updated manually. Its browsing profile is still stored locally.
 
-Installed builds can download updates in the background and offer a Restart action when an update is ready.
+Installed builds can download updates in the background and offer to restart when an update is ready.
 
 The executables are currently **unsigned**, so Windows SmartScreen may display a warning. Verify the download source. The repository includes a public GitHub Actions release workflow.
 
@@ -128,6 +150,7 @@ npm run benchmark
 | Ctrl+T | Open the new-tab launcher |
 | Ctrl+L | Focus the address bar |
 | Ctrl+W | Close the current tab |
+| Middle-click a tab preview | Close that tab from Tab Overview |
 | Ctrl+Shift+T | Reopen a closed tab |
 | Ctrl+Tab / Ctrl+Shift+Tab | Switch tabs |
 | Ctrl+Shift+N | Open a private window |
@@ -142,7 +165,7 @@ Vela uses sandboxing, context isolation, restricted IPC, a strict application CS
 
 Private windows use separate temporary profiles and in-memory browsing sessions. Private browsing does not provide anonymity, and files you download remain on disk. Panic Button does not erase history or close other tabs.
 
-Vela is an early-stage browser project. It does not include a password manager, cloud synchronization or a Safe Browsing-equivalent service. Website, extension and DRM compatibility can vary.
+Vela includes a local encrypted password vault. Cloud synchronization and Safe Browsing-style reputation checks are unavailable. Website, extension and DRM compatibility can vary. Gmail's browser warning after sign-in remains unresolved.
 
 Read [SECURITY.md](SECURITY.md) for implementation details, limitations and vulnerability reporting.
 
@@ -156,7 +179,7 @@ The Vela logo was generated using Gemini.
 
 Fonts are supplied by the operating system; proprietary Apple fonts are not bundled.
 
-Safari, Arc, Chrome, Chrome Web Store, Windows and other product names belong to their respective owners. References describe inspiration or interoperability only. Vela is not affiliated with, endorsed by or sponsored by those owners.
+Safari, Arc, Chrome, Chrome Web Store, Gmail, Windows and other product names belong to their respective owners. References describe inspiration or interoperability only. Vela is not affiliated with, endorsed by or sponsored by those owners.
 
 ## Contributing
 

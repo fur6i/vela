@@ -1,5 +1,9 @@
 # Vela 0.10.0 performance checks
 
+## Release 0.12.0 additions
+
+The vault does no periodic disk/network work and keeps no persistent decrypted cache. Its helper exists only during an explicitly requested authentication; packaged builds use a precompiled helper. Development launches compile it on demand. Autocomplete uses delegated focus/input gestures rather than DOM polling. Import planning is bounded, recreates dormant tabs without navigating them and uses the existing bounded favicon queue for missing favorite icons. These are implementation properties, not comparative RAM/speed benchmark results. Rerun `npm run benchmark` on representative hardware before making performance comparisons.
+
 Measured locally against the pre-change 0.9.2 source, using the same Electron 45.4.1 / Chromium 156 runtime and synthetic pages. The original raw samples are local test artifacts and are intentionally excluded from public source exports. These historical measurements are not a benchmark of 0.11.0.
 
 | Scenario, before first sidebar/dock use | Private memory before | Private memory after | Processes before / after |

@@ -28,15 +28,37 @@ Vela porta su Windows un’interfaccia Chromium essenziale, con superfici ispira
 
 La direzione visiva prende ispirazione da Safari, mentre la navigazione tra gli spazi riprende alcune idee di Arc. Vela è un progetto indipendente, sviluppato con Electron e Chromium.
 
+## Novità della 0.12.0
+
+- **Panoramica schede:** fai clic con il tasto centrale su un’anteprima per chiudere la scheda corrispondente.
+- **Chrome Web Store:** risolto il blocco del download durante il reindirizzamento dello Store. Apri la scheda di un’estensione, scegli **Installa in Vela** e controlla i permessi prima di confermare. L’installazione di Tab Translate 2.0.1 è stata verificata in un profilo di prova. La sua integrazione nel menu contestuale richiede un’API assente in Electron.
+- **Interfaccia:** il pannello delle impostazioni è centrato, la barra degli indirizzi ha un pulsante per copiare il link e la pagina iniziale mostra © fur6i nell’angolo in basso a destra.
+
+## Password e migrazione
+
+Vela 0.12.0 usa la stessa identità dell’installer e lo stesso profilo di navigazione di Vela 0.11.0 stabile. I dati delle versioni precedenti di Vela Beta rimangono nel loro profilo separato.
+
+- **Password manager locale cifrato:** apri Impostazioni → Password manager. Il vault cifra nomi utente, origini e password con AES-256-GCM; la chiave casuale è protetta da Windows DPAPI. Lo sblocco dell'elenco, il salvataggio, l'eliminazione e ogni compilazione richiedono una nuova autenticazione dell'account Windows nella finestra di sistema. La password di Windows rimane nel componente nativo temporaneo e non passa a JavaScript, file o log.
+- **Compilazione al clic:** clicca un campo nome utente/password di un modulo HTTPS, scegli l'account dal menu controllato da Vela e autenticati con Windows. La corrispondenza dell'origine è esatta, porta inclusa. Vela ricontrolla documento e scheda dopo l'autenticazione, rifiuta moduli diretti a un'altra origine e non invia il modulo. Vela propone di salvare le credenziali quando invii un modulo di accesso supportato. Puoi anche salvarle dal menu del campo o aggiungerle nelle impostazioni. Sono esclusi moduli ambigui, registrazioni/cambi password e frame di altre origini.
+- **Importazione da Arc:** esporta **Spazi e schede** da Impostazioni → Avanzate di Arc, poi seleziona **Arc Data Export.md** da Impostazioni → Importa da Arc in Vela. Gli spazi vengono ricreati e i link diventano schede fissate sospese; vengono importati anche i preferiti. Vela conserva le cartelle annidate quando il file ne descrive la struttura. Per correggere un vecchio import, seleziona di nuovo lo stesso Markdown e controlla le schede da spostare. Conferma e deduplicazione precedono l'importazione. Vela mostra fino a quattro spazi. Gli spazi eccedenti diventano cartelle. Si possono importare fino a 80 schede e 256 preferiti.
+- **Password da Arc:** se il suo password manager offre l'esportazione CSV, seleziona il CSV insieme al file MD, oppure da solo. Vela accetta le colonne Chromium `url,username,password` e cifra le credenziali HTTPS valide dopo l'autenticazione Windows. Non estrae chiavi di Arc e non decifra il database del suo profilo. Il CSV esportato contiene password in chiaro: proteggilo ed eliminalo quando non serve più. Vela non modifica i file originali.
+
+Sui sistemi Windows 11 compatibili, Vela usa Windows Hello. Se Hello non è disponibile, Vela richiede la password dell'account Windows. Le finestre private non accedono al vault e non importano dati. L'elenco si blocca dopo 60 secondi, chiudendo il pannello e al blocco/sospensione di Windows. Non ci sono cloud sync o recupero remoto: la copia del vault non si sblocca semplicemente con un altro account Windows. Malware con i diritti dello stesso utente, main process compromesso o sito di destinazione compromesso restano fuori da questa protezione. Vedi [SECURITY.md](SECURITY.md).
+
+Per lo sviluppo locale, esegui `npm ci` e `npm start` da questa cartella. Il componente nativo viene compilato su richiesta con il compilatore C# di .NET Framework di Windows; i pacchetti lo compilano una volta tramite `scripts/build-auth.cjs` e lo includono come risorsa. Non vengono cambiate le policy PowerShell. Verifica con `npm run check`, `npm run smoke` e `node scripts/audit-release.cjs`. L'autenticazione riuscita con il tuo account richiede ancora una verifica manuale; i test automatici non chiedono credenziali reali.
+
+Formato di esportazione: [guida ufficiale Arc](https://resources.arc.net/hc/en-us/articles/25583851606039-How-Do-I-Export-My-Data-from-Arc). L'autenticazione usa le API Microsoft [finestra credenziali](https://learn.microsoft.com/en-us/windows/win32/api/wincred/nf-wincred-creduipromptforwindowscredentialsw) e [LogonUser](https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-logonuserw). I nomi dei prodotti sono descrittivi; Vela non è affiliato ai rispettivi titolari.
+
 ## Funzionalità
 
 - **Interfaccia minimale:** sfumature leggere, sfondo personalizzabile e aspetto chiaro/scuro.
 - **Sidebar a comparsa:** avvicina il cursore al bordo sinistro oppure mantienila fissata.
-- **Spazi personalizzabili:** separa le schede tra Personale e Lavoro, modificando nomi, colori, emoji e immagini.
-- **Gestione flessibile delle schede:** schede fissate, riordino tramite trascinamento, duplicazione, silenziamento, riapertura e panoramica visiva.
+- **Spazi personalizzabili:** organizza le schede in un massimo di quattro spazi con nomi, colori, emoji e immagini modificabili.
+- **Gestione flessibile delle schede:** schede fissate e cartelle, riordino tramite trascinamento, duplicazione, silenziamento, riapertura e panoramica visiva.
 - **Navigazione rapida:** launcher per nuove schede con suggerimenti di ricerca e accesso alle schede recenti.
 - **Motore di ricerca a scelta:** Google, Bing, Brave Search o Ecosia, selezionabili durante la configurazione.
-- **Preferiti modificabili:** organizza i collegamenti con le icone dei siti.
+- **Preferiti modificabili:** riordina i collegamenti con le icone dei siti nella barra laterale o nel pannello Preferiti.
+- **Liste di tracker personalizzate:** aggiungi domini, file hosts o regole di dominio supportate da Impostazioni → Privacy.
 - **Italiano e inglese:** cambia subito la lingua dalle impostazioni. Anche l’installer Windows offre entrambe le lingue.
 - **Download compatti:** gestisci i trasferimenti da un popup laterale senza coprire tutta la pagina.
 
@@ -61,7 +83,7 @@ Gli strumenti si trovano in un dock riordinabile e aprono pannelli compatti acca
 
 ## Estensioni
 
-Installa estensioni tramite URL o ID del Chrome Web Store, oppure carica una cartella già estratta.
+Usa **Installa in Vela** dalla scheda di un’estensione del Chrome Web Store, incolla un URL o un ID dello Store nel dock estensioni oppure carica una cartella già estratta.
 
 I pacchetti dello Store vengono sottoposti a verifica della firma e dell’identità, estrazione con limiti di sicurezza e conferma dei permessi prima del caricamento. La compatibilità dipende dalle API disponibili in Electron: alcune estensioni possono installarsi senza funzionare completamente.
 
@@ -86,10 +108,10 @@ Richiede **Windows 10 o 11, x64**.
 
 Le build pubblicate sono disponibili nelle [release GitHub](https://github.com/fur6i/vela/releases):
 
-- **Installer:** consigliato per l’uso abituale; supporta gli aggiornamenti dalle release GitHub pubblicate.
+- **Installer:** consigliato per l’uso abituale. Le versioni stabili supportano gli aggiornamenti dalle release GitHub pubblicate.
 - **Eseguibile portatile:** funziona senza installazione e si aggiorna manualmente. Il profilo di navigazione resta comunque salvato localmente.
 
-Le versioni installate possono scaricare gli aggiornamenti in background e proporre il pulsante Riavvia quando sono pronti.
+Le versioni installate possono scaricare gli aggiornamenti in background e proporre il riavvio quando sono pronti.
 
 Gli eseguibili attualmente **non sono firmati digitalmente**, quindi Windows SmartScreen può mostrare un avviso. Verifica la provenienza del download. Il repository include un workflow pubblico di release tramite GitHub Actions.
 
@@ -128,6 +150,7 @@ npm run benchmark
 | Ctrl+T | Apre il launcher nuova scheda |
 | Ctrl+L | Seleziona la barra degli indirizzi |
 | Ctrl+W | Chiude la scheda corrente |
+| Tasto centrale su un’anteprima | Chiude la scheda dalla panoramica |
 | Ctrl+Shift+T | Riapre una scheda chiusa |
 | Ctrl+Tab / Ctrl+Shift+Tab | Cambia scheda |
 | Ctrl+Shift+N | Apre una finestra privata |
@@ -142,7 +165,7 @@ Vela usa sandbox, isolamento del contesto, IPC limitato, una CSP rigorosa per l�
 
 Le finestre private utilizzano profili temporanei separati e sessioni di navigazione in memoria. La navigazione privata non fornisce anonimato e i file scaricati rimangono sul disco. Panic Button non cancella la cronologia e non chiude le altre schede.
 
-Vela è un progetto nelle prime fasi di sviluppo. Non include un gestore di password, sincronizzazione cloud o un servizio equivalente a Safe Browsing. La compatibilità con siti, estensioni e servizi DRM può variare.
+Vela include un archivio locale cifrato per le password. Sincronizzazione cloud e controlli di reputazione equivalenti a Safe Browsing sono assenti. La compatibilità con siti, estensioni e servizi DRM può variare. L’avviso di compatibilità di Gmail dopo l’accesso resta da risolvere.
 
 Consulta [SECURITY.md](SECURITY.md) per implementazione, limiti e segnalazioni di vulnerabilità.
 
@@ -156,7 +179,7 @@ Il logo Vela è stato generato con Gemini.
 
 I font vengono forniti dal sistema operativo; non vengono distribuiti font proprietari Apple.
 
-Safari, Arc, Chrome, Chrome Web Store, Windows e gli altri nomi di prodotto appartengono ai rispettivi titolari. I riferimenti descrivono soltanto ispirazione o interoperabilità. Vela non è affiliata, approvata o sponsorizzata dai rispettivi titolari.
+Safari, Arc, Chrome, Chrome Web Store, Gmail, Windows e gli altri nomi di prodotto appartengono ai rispettivi titolari. I riferimenti descrivono soltanto ispirazione o interoperabilità. Vela non è affiliata, approvata o sponsorizzata dai rispettivi titolari.
 
 ## Contribuire
 
