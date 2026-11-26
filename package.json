@@ -1,6 +1,6 @@
 {
   "name": "vela-browser",
-  "version": "0.11.0",
+  "version": "0.12.0",
   "license": "MIT",
   "author": "fur6i",
   "repository": {
@@ -11,7 +11,7 @@
   "main": "src/main.cjs",
   "scripts": {
     "start": "electron .",
-    "check": "node --check src/main.cjs && node --check src/preload.cjs && node --check src/renderer.js && node --check src/security.cjs && node --check src/adblock.cjs && node --check src/adblock-preload.cjs && node --check src/youtube-smoke.cjs && node --test tests/*.test.cjs",
+    "check": "node --check src/main.cjs && node --check src/preload.cjs && node --check src/renderer.js && node --check src/security.cjs && node --check src/adblock.cjs && node --check src/adblock-preload.cjs && node --check src/youtube-smoke.cjs && node --check src/vault-ui.js && node --check src/credential-menu.js && node --check src/credential-menu-preload.cjs && node --check src/windows-auth.cjs && node --check src/windows-auth-build.cjs && node --test tests/*.test.cjs",
     "smoke": "electron . --smoke-test",
     "benchmark": "electron . --smoke-test --performance-test",
     "smoke:online": "electron . --smoke-test --online-filters",
@@ -31,6 +31,13 @@
   "build": {
     "appId": "dev.vela.browser",
     "productName": "Vela",
+    "beforePack": "scripts/build-auth.cjs",
+    "extraResources": [
+      {
+        "from": ".auth-helper/vela-auth.exe",
+        "to": "windows/vela-auth.exe"
+      }
+    ],
     "afterPack": "scripts/harden.cjs",
     "directories": {
       "output": "release"
@@ -41,7 +48,8 @@
       "package.json",
       "LICENSE",
       "THIRD_PARTY_NOTICES.txt",
-      "!assets/vela-source.png"
+      "!assets/vela-source.png",
+      "!assets/vela-alpha.png"
     ],
     "publish": [
       {

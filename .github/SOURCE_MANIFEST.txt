@@ -1,4 +1,4 @@
-Vela 0.11.0 - public source inventory
+Vela 0.12.0 - release source inventory
 Source/configuration files only; no profiles, keys, downloaded tools or build outputs.
 Regenerate after changing the source tree.
 
@@ -60,12 +60,14 @@ assets/licenses/undici-7.30.2.txt
 assets/licenses/undici-types-7.24.6.txt
 assets/licenses/universalify-2.0.1.txt
 assets/privacy-trackers.txt
+assets/vela-alpha.png
 assets/vela-source.png
 assets/vela.ico
 assets/vela.png
 package-lock.json
 package.json
 scripts/audit-release.cjs
+scripts/build-auth.cjs
 scripts/collect-licenses.cjs
 scripts/create-icon.cjs
 scripts/export-github.cjs
@@ -74,6 +76,14 @@ scripts/installer.nsh
 scripts/verify-video-tools.cjs
 src/adblock-preload.cjs
 src/adblock.cjs
+src/arc-import.cjs
+src/credential-controller.cjs
+src/credential-menu-preload.cjs
+src/credential-menu.cjs
+src/credential-menu.css
+src/credential-menu.html
+src/credential-menu.js
+src/credential-preload.cjs
 src/extension-package.cjs
 src/extension-shelf.cjs
 src/favicons.cjs
@@ -85,6 +95,7 @@ src/media.cjs
 src/native-tools.cjs
 src/navigation.cjs
 src/panic.cjs
+src/password-vault.cjs
 src/performance-smoke.cjs
 src/preferences.cjs
 src/preload.cjs
@@ -93,17 +104,29 @@ src/privacy.cjs
 src/private-cleanup.cjs
 src/public-media.cjs
 src/renderer.js
+src/scrollbar-preload.cjs
 src/search-suggestions.cjs
 src/security.cjs
+src/settings-ui.js
 src/smoke.cjs
 src/spaces.cjs
 src/styles.css
 src/thumbnails.cjs
+src/tracker-lists.cjs
 src/updates.cjs
+src/vault-ui.js
 src/video-tools.cjs
 src/virustotal.cjs
+src/windows-auth-build.cjs
+src/windows-auth.cjs
+src/windows-auth.cs
 src/youtube-smoke.cjs
 tests/adblock.test.cjs
+tests/arc-import.test.cjs
+tests/credential-controller.test.cjs
+tests/credential-menu.test.cjs
+tests/credential-preload.test.cjs
+tests/credentials-electron.cjs
 tests/extensions.test.cjs
 tests/favicons.test.cjs
 tests/i18n.test.cjs
@@ -111,10 +134,12 @@ tests/media.test.cjs
 tests/native-tools.test.cjs
 tests/navigation.test.cjs
 tests/panic.test.cjs
+tests/password-vault.test.cjs
 tests/preferences.test.cjs
 tests/privacy.test.cjs
 tests/private-cleanup.test.cjs
 tests/search-suggestions.test.cjs
+tests/tracker-lists.test.cjs
 tests/security.test.cjs
 tests/spaces.test.cjs
 tests/thumbnails.test.cjs

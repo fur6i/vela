@@ -1,5 +1,23 @@
 # Verifica sorgenti per il push pubblico
 
+## Versione stabile 0.12.0
+
+- L’installer mantiene l’identità della 0.11.0 e riutilizza il profilo stabile. Le versioni di prova precedenti conservano i loro dati nel profilo Beta separato.
+- La versione installata torna a controllare gli aggiornamenti dal canale stabile. Il tag di release è `v0.12.0`.
+- La cartella di esportazione usa la versione nel nome e lo script si ferma se la destinazione esiste già.
+
+## Storico
+
+## Beta 0.12.0-beta.1 — 22 novembre 2026
+
+- Copia di sviluppo separata: identità installer e profilo Vela Beta, nessuna lettura/scrittura del profilo stabile, aggiornamenti del canale stabile disattivati. Lo script di export punta a una destinazione beta distinta e rifiuta di sovrascrivere repository Git esistenti.
+- Vault AES-256-GCM con chiave avvolta tramite safeStorage asincrono / DPAPI, nessun indice credenziali in chiaro nel profilo o nello stato UI. Componente C# originale per finestra credenziali Windows su desktop sicuro, LogonUser e verifica SID; nessuna password Windows in JavaScript, file o log. Annullamento e provider non supportati negano l'accesso.
+- Suggerimenti in un WebContentsView dedicato con CSP e IPC limitato alle scelte correnti; nessun bridge privilegiato nelle pagine. Origine HTTPS esatta, controlli prima/dopo autenticazione e decifratura, esclusione frame/moduli non sicuri, nessun invio automatico. Blocchi al cambio documento/scheda e al lock/suspend di Windows.
+- Importazione solo da esportazioni MD/CSV selezionate: anteprima, deduplicazione, ricostruzione spazi/schede sospese e preferiti, cifratura immediata credenziali valide. Nessuna estrazione di database/chiavi/sessioni Arc. Limiti e formati descritti nei README bilingue e in SECURITY.md.
+- Check automatico: 77 test; smoke con round-trip DPAPI reale, pannelli e popover isolato. Prova Chromium/HTTPS aggiuntiva in tests/credentials-electron.cjs: focus attendibile, assenza di bridge privilegiato, token documento obsoleto rifiutato e compilazione DOM reale. La verifica riuscita di un account Windows reale resta manuale; nessuna password reale richiesta dai test. Non equivale a una certificazione di sicurezza o a un audit indipendente.
+
+Le note seguenti descrivono la base stabile da cui deriva la beta.
+
 Data: 21 novembre 2026. Versione: 0.11.0.
 
 ## Modifiche incluse
